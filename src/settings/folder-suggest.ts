@@ -1,3 +1,4 @@
+// Code derived from https://github.com/farux/obsidian-auto-note-mover
 import { App, ISuggestOwner, Scope, TAbstractFile, TFolder } from "obsidian";
 import { createPopper, Instance as PopperInstance } from "@popperjs/core";
 
