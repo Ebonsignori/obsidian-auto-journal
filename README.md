@@ -1,6 +1,6 @@
 # Auto Journal
 
-The core [Daily notes](https://help.obsidian.md/Plugins/Daily+notes) plugin doesn't backfill notes for the days when Obsidian wan't opened. This plugin does.
+The core [Daily notes](https://help.obsidian.md/Plugins/Daily+notes) plugin doesn't backfill notes for the days when Obsidian wasn't opened. This plugin does.
 
 It uses an opinionated folder structure that isn't configurable:
   - **Daily Notes**: `ROOT / YEAR / MONTH / DAY -`
