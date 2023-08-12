@@ -3,7 +3,7 @@
 	"name": "Auto Journal",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "Opinionated journaling automation like daily notes but with backfills for the days that you didn't open Obsidian",
+	"description": "Opinionated journaling automation like daily notes but with backfills for the days when Obsidian wasn't opened",
 	"author": "Evan Bonsignori",
 	"authorUrl": "https://github.com/Ebonsignori",
 	"isDesktopOnly": false

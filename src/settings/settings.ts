@@ -124,18 +124,22 @@ export class SettingsTab extends PluginSettingTab {
 		}
 	}
 
-	// TODO: Add validation at settings level to make sure dependent settings are set when
-	// an option is enabled
 	display(): void {
 		const { containerEl } = this;
 		containerEl.empty();
 
 		// Add a description to the top of the settings tab
 		const descEl = document.createDocumentFragment();
+		const dailyNotesPluginLink = createLink(
+			descEl,
+			"daily notes",
+			"https://help.obsidian.md/Plugins/Daily+notes"
+		);
 		descEl.append(
-			descEl.createEl("strong", { text: "What is Auto Journal?" }),
-			descEl.createEl("br"),
-			"The core 'Daily notes' plugin doesn't backfill notes for the days you didn't open Obsidian. This plugin does.",
+			createHeading(descEl, "Auto Journal"),
+			"The core ",
+			dailyNotesPluginLink,
+			" plugin doesn't backfill notes for the days when Obsidian wan't opened. This plugin does.",
 			descEl.createEl("br"),
 			"This plugin creates daily and/or monthly notes based on a template.",
 			descEl.createEl("br"),
@@ -148,10 +152,12 @@ export class SettingsTab extends PluginSettingTab {
 		rootFolderDesc.append(
 			`Root path to create journal in. This should not be changed once set.`,
 			rootFolderDesc.createEl("br"),
-			`Leave empty to create journal entries in the root of the vault.`
+			rootFolderDesc.createEl("em", {
+				text: `Leave empty to create journal entries in the root of the vault.`,
+			})
 		);
 		new Setting(this.containerEl)
-			.setName(`Root Folder`)
+			.setName(`Root folder`)
 			.setDesc(rootFolderDesc)
 			.addSearch((cb) => {
 				new FolderSuggest(this.app, cb.inputEl);
@@ -180,7 +186,7 @@ export class SettingsTab extends PluginSettingTab {
 			`Name of the folder to create monthly notes in.`
 		);
 		new Setting(this.containerEl)
-			.setName(`Monthly Notes Folder Name`)
+			.setName(`Monthly notes folder`)
 			.setDesc(monthlyNotesFolderNameDesc)
 			.addText((text) => {
 				text.setPlaceholder("check-ins")
@@ -201,7 +207,7 @@ export class SettingsTab extends PluginSettingTab {
 			`Day of the month to create monthly notes on.`
 		);
 		new Setting(this.containerEl)
-			.setName(`Monthly Notes Day of Month`)
+			.setName(`Monthly notes day of month`)
 			.setDesc(monthlyNotesDayOfMonthDesc)
 			.addText((text) => {
 				text.setPlaceholder("1")
@@ -245,15 +251,18 @@ export class SettingsTab extends PluginSettingTab {
 		}
 
 		const yearFormatDesc = document.createDocumentFragment();
+		const momentLink = createLink(
+			yearFormatDesc,
+			"moment.js date format",
+			"https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/"
+		);
 		yearFormatDesc.append(
 			`Format for the ${lowerType} that the file path uses. In `,
-			yearFormatDesc.createEl("a", {
-				text: "moment.js date format",
-				href: "https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/",
-			})
+			momentLink,
+			"."
 		);
 		new Setting(this.containerEl)
-			.setName(`${type} Format`)
+			.setName(`${type} format`)
 			.setDesc(yearFormatDesc)
 			.addMomentFormat((text) => {
 				text.setPlaceholder(placeHolder)
@@ -273,10 +282,7 @@ export class SettingsTab extends PluginSettingTab {
 		const lowerType = type.toLowerCase() as "daily" | "monthly";
 		// Notes type Heading
 		const notesEl = document.createDocumentFragment();
-		const notesHeading = notesEl.createEl("h2", {
-			text: `${type} Notes`,
-		});
-		notesHeading.addClass("auto-journal-notes-heading");
+		const notesHeading = createHeading(notesEl, `${type} notes`);
 
 		let rootFolder = `[${this.plugin.settings.rootFolder}]/`;
 		if (this.plugin.settings.rootFolder === "") {
@@ -298,10 +304,10 @@ export class SettingsTab extends PluginSettingTab {
 		// - - - Begin Option: notesEnabled
 		const createNotesDesc = document.createDocumentFragment();
 		createNotesDesc.append(
-			`Toggle off to disable ${lowerType} note functionality.`
+			`Toggle on/off to trigger ${lowerType} note functionality.`
 		);
 		new Setting(this.containerEl)
-			.setName(`Create ${type} Notes?`)
+			.setName(`Create ${lowerType} notes?`)
 			.setDesc(createNotesDesc)
 			.addToggle((toggle) => {
 				toggle
@@ -332,10 +338,14 @@ export class SettingsTab extends PluginSettingTab {
 		// - - - Begin Option: notesTemplateFile
 		const notesTemplateFileDesc = document.createDocumentFragment();
 		notesTemplateFileDesc.append(
-			`Path to the template file used to create ${lowerType} notes.`
+			`Path to the template file used to create ${lowerType} notes. `,
+			notesTemplateFileDesc.createEl("br"),
+			notesTemplateFileDesc.createEl("strong", {
+				text: `Required when ${lowerType} notes are enabled.`,
+			})
 		);
 		new Setting(this.containerEl)
-			.setName(`${type} Notes Template`)
+			.setName(`${type} notes template`)
 			.setDesc(notesTemplateFileDesc)
 			.addSearch((cb) => {
 				new FileSuggest(this.app, cb.inputEl);
@@ -360,8 +370,12 @@ export class SettingsTab extends PluginSettingTab {
 
 		// - - - Begin Option: backfillNotes
 		const backfillNotesDesc = document.createDocumentFragment();
+		const timeSpanText =
+			type === "Daily"
+				? "days of the this month or for each month of this year"
+				: "months of this year";
 		backfillNotesDesc.append(
-			`Enable to create ${lowerType} notes for months/years that don't have them upon opening Obsidian.`
+			`Enable to create ${lowerType} notes for ${timeSpanText} that don't already have notes.`
 		);
 		const options = {
 			[BackFillOptions.NONE]: BackFillOptions.NONE,
@@ -372,7 +386,7 @@ export class SettingsTab extends PluginSettingTab {
 			options[BackFillOptions.MONTH] = BackFillOptions.MONTH;
 		}
 		new Setting(this.containerEl)
-			.setName(`Backfill ${type} Notes?`)
+			.setName(`Backfill ${lowerType} notes?`)
 			.setDesc(backfillNotesDesc)
 			.addDropdown((dropdown) =>
 				dropdown
@@ -385,4 +399,16 @@ export class SettingsTab extends PluginSettingTab {
 					})
 			);
 	}
+}
+
+function createHeading(el: DocumentFragment, text: string, level = 2) {
+	const heading = el.createEl(`h${level}` as keyof HTMLElementTagNameMap, { text });
+	heading.addClass("auto-journal-heading");
+	return heading;
+}
+
+function createLink(el: DocumentFragment, text: string, href: string) {
+	const link = el.createEl("a", { text, href });
+	link.addClass("auto-journal-link");
+	return link;
 }

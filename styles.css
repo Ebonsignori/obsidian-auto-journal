@@ -1,6 +1,13 @@
-.auto-journal-notes-heading {
+/* Auto Journal styles */
+.auto-journal-heading {
   margin: 0;
+	color: var(--text-normal);
 }
+
+.auto-journal-link {
+	font-style: italic;
+}
+
 .auto-journal-notes-body {
-  margin: 0;
+	margin: 0;
 }
