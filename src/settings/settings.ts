@@ -161,7 +161,7 @@ export class SettingsTab extends PluginSettingTab {
 			.setDesc(rootFolderDesc)
 			.addSearch((cb) => {
 				new FolderSuggest(this.app, cb.inputEl);
-				cb.setPlaceholder("Journal")
+				cb.setPlaceholder("No root")
 					.setValue(this.plugin.settings["rootFolder"])
 					.onChange(async (newFolder) => {
 						this.plugin.settings["rootFolder"] = newFolder.trim();
@@ -189,7 +189,7 @@ export class SettingsTab extends PluginSettingTab {
 			.setName(`Monthly notes folder`)
 			.setDesc(monthlyNotesFolderNameDesc)
 			.addText((text) => {
-				text.setPlaceholder("check-ins")
+				text.setPlaceholder("Check-Ins")
 					.setValue(this.plugin.settings["monthlyNotesFolderName"])
 					.onChange(async (value: string) => {
 						this.plugin.settings["monthlyNotesFolderName"] = value;
@@ -370,12 +370,28 @@ export class SettingsTab extends PluginSettingTab {
 
 		// - - - Begin Option: backfillNotes
 		const backfillNotesDesc = document.createDocumentFragment();
-		const timeSpanText =
-			type === "Daily"
-				? "days of the this month or for each month of this year"
-				: "months of this year";
+		let timeSpanText = [] as Array<HTMLElement | string>;
+		if (type === "Daily") {
+			timeSpanText = [
+				backfillNotesDesc.createEl("strong", { text: "For month" }),
+				": backfill notes for each previous day in the current month.",
+				backfillNotesDesc.createEl("br"),
+				backfillNotesDesc.createEl("strong", { text: "For year" }),
+				": backfill notes for each day in each previous month in the current year.",
+			];
+		} else if (type === "Monthly") {
+			timeSpanText = [
+				backfillNotesDesc.createEl("strong", { text: "For year" }),
+				": backfill notes for each previous month in the current year.",
+			];
+		}
+
 		backfillNotesDesc.append(
-			`Enable to create ${lowerType} notes for ${timeSpanText} that don't already have notes.`
+			`Enable to create missing ${lowerType} notes for previous ${
+				type === "Daily" ? "days" : "months"
+			} upon opening Obsidian.`,
+			backfillNotesDesc.createEl("br"),
+			...timeSpanText
 		);
 		const options = {
 			[BackFillOptions.NONE]: BackFillOptions.NONE,
@@ -402,7 +418,9 @@ export class SettingsTab extends PluginSettingTab {
 }
 
 function createHeading(el: DocumentFragment, text: string, level = 2) {
-	const heading = el.createEl(`h${level}` as keyof HTMLElementTagNameMap, { text });
+	const heading = el.createEl(`h${level}` as keyof HTMLElementTagNameMap, {
+		text,
+	});
 	heading.addClass("auto-journal-heading");
 	return heading;
 }
