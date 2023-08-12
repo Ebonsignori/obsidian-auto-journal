@@ -33,7 +33,7 @@ For Monthly Notes:
 
 ## Plugins that pair well for daily journaling
 
-- [Custom File Explorer sorting](https://github.com/SebastianMC/obsidian-custom-sort) Since the default names of each journal are the full names of the months e.g. January the following `sortspec` file will organize them in the correct order on your filesystem
+- [Custom File Explorer sorting](https://github.com/SebastianMC/obsidian-custom-sort) Since the default names of each journal are the full names of the months e.g. `January` the following `sortspec` file placed in the root folder of your journal will organize them in the correct order on your filesystem.
    <details>
    <summary>
    Click to see sortspec
@@ -63,7 +63,7 @@ For Monthly Notes:
     ```
    </details>
 
-- [Templater](https://github.com/SilentVoid13/Templater): Useful for inserting dates and other properties into your journal entry template
+- [Templater](https://github.com/SilentVoid13/Templater): Useful for inserting dates and other properties into your journal entry template.
   <details>
   <summary>
   Click to see journal template
@@ -122,9 +122,9 @@ For Monthly Notes:
   ```
   </details>
 
-- [@ Symbol Linking](https://github.com/Ebonsignori/obsidian-at-symbol-linking) I keep a `People` directory at the top of my journal that I regularly link to with the `@` symbol. You can configure this plugin to only look for links in that directory when typing `@`
+- [@ Symbol Linking](https://github.com/Ebonsignori/obsidian-at-symbol-linking) I keep a `People` directory at the top of my journal that I regularly link to with the `@` symbol. You can configure this plugin to only look for links in that directory when typing `@`.
 
-- [Google Photos](https://github.com/alangrainger/obsidian-google-photos) Useful way to include photos in each of your entries but while storing them in a separate app. This plugin will create thumbnails so you can still see the photos, but they'll be hosted by Google and not take up space in your vault.
+- [Google Photos](https://github.com/alangrainger/obsidian-google-photos) Useful way to include photos in each of your entries while storing them in a separate app. This plugin will create thumbnails so you can still see the photos, but they'll be hosted by Google and not take up space in your vault.
 
 ## Installing
 
