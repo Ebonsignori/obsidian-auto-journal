@@ -58,7 +58,10 @@ export default class Core {
 				continue;
 			}
 
-			if (this.settings.dailyNotesBackfill === BackFillOptions.MONTH || this.settings.dailyNotesBackfill === BackFillOptions.NONE) {
+			if (
+				this.settings.dailyNotesBackfill === BackFillOptions.MONTH ||
+				this.settings.dailyNotesBackfill === BackFillOptions.NONE
+			) {
 				if (
 					currentMonth !== moment().format(this.settings.monthFormat)
 				) {
@@ -72,7 +75,14 @@ export default class Core {
 
 			// Get all the files in the month folder
 			const filesInFolder = this.app.vault.getFiles().filter((file) => {
-				return file.path.startsWith(monthsFolderPath);
+				let folderPath = path.join(
+					this.settings.rootFolder,
+					monthsFolderPath
+				);
+				if (folderPath.startsWith("/")) {
+					folderPath = folderPath.slice(1);
+				}
+				return file.path.startsWith(folderPath);
 			});
 
 			const daysInMonth = moment().daysInMonth();
@@ -148,8 +158,16 @@ export default class Core {
 
 		// Get all the files in the month folder
 		const filesInFolder = this.app.vault.getFiles().filter((file) => {
+			let folderPath = path.join(
+				this.settings.rootFolder,
+				monthlyNotesFolderPath
+			);
+			if (folderPath.startsWith("/")) {
+				folderPath = folderPath.slice(1);
+			}
+
 			return (
-				file.path.startsWith(monthlyNotesFolderPath) &&
+				file.path.startsWith(folderPath) &&
 				(file?.parent?.name
 					? file.parent.name === this.settings.monthlyNotesFolderName
 					: true)
@@ -218,7 +236,12 @@ export default class Core {
 		if (!newFilePath.endsWith(".md")) {
 			newFilePath += ".md";
 		}
-		const folderPath = path.dirname(newFilePath);
+		newFilePath = path.join(this.settings.rootFolder, newFilePath);
+		let folderPath = path.dirname(newFilePath);
+
+		if (folderPath.startsWith("/")) {
+			folderPath = folderPath.slice(1);
+		}
 
 		// Check if the folder exists, if not, create it
 		if (!this.app.vault.getAbstractFileByPath(folderPath)) {

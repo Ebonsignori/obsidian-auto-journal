@@ -1,7 +1,5 @@
-// Code derived from https://github.com/farux/obsidian-auto-note-mover
-import { App, ISuggestOwner, Scope, TFile } from "obsidian";
+import { App, ISuggestOwner, Scope, TAbstractFile, TFolder } from "obsidian";
 import { createPopper, Instance as PopperInstance } from "@popperjs/core";
-import fuzzysort from "fuzzysort";
 
 export const wrapAround = (value: number, size: number): number => {
 	return ((value % size) + size) % size;
@@ -196,34 +194,30 @@ abstract class TextInputSuggest<T> implements ISuggestOwner<T> {
 	abstract selectSuggestion(item: T): void;
 }
 
-export class FileSuggest extends TextInputSuggest<Fuzzysort.KeyResult<TFile>> {
-	getSuggestions(inputStr: string): Fuzzysort.KeyResult<TFile>[] {
-		let abstractFiles = this.app.vault.getAllLoadedFiles();
+export class FolderSuggest extends TextInputSuggest<TFolder> {
+	getSuggestions(inputStr: string): TFolder[] {
+		const abstractFiles = this.app.vault.getAllLoadedFiles();
+		const folders: TFolder[] = [];
 		const lowerCaseInputStr = inputStr.toLowerCase();
 
-		abstractFiles = abstractFiles.filter((file) => {
-			return file.path.endsWith(".md");
-		});
-		abstractFiles = abstractFiles.map((file) => {
-			return {
-				...file,
-				path: file.path.slice(0, -3),
-			};
+		abstractFiles.forEach((folder: TAbstractFile) => {
+			if (
+				folder instanceof TFolder &&
+				folder.path.toLowerCase().contains(lowerCaseInputStr)
+			) {
+				folders.push(folder);
+			}
 		});
 
-		return fuzzysort.go(lowerCaseInputStr, abstractFiles, {
-			key: "path",
-		}) as any;
+		return folders;
 	}
 
-	renderSuggestion(file: Fuzzysort.KeyResult<TFile>, el: HTMLElement): void {
-		el.innerHTML =
-			fuzzysort.highlight(file, "<strong>", "</strong>") ||
-			file.obj?.path;
+	renderSuggestion(file: TFolder, el: HTMLElement): void {
+		el.setText(file.path);
 	}
 
-	selectSuggestion(file: Fuzzysort.KeyResult<TFile>): void {
-		this.inputEl.value = file.obj?.path;
+	selectSuggestion(file: TFolder): void {
+		this.inputEl.value = file.path;
 		this.inputEl.trigger("input");
 		this.close();
 	}

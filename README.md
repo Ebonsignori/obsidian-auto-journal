@@ -1,20 +1,22 @@
 # Auto Journal
 
-The core 'Daily notes' plugin doesn't backfill notes for the days you didn't open Obsidian. This plugin does.
+The core [Daily notes](https://help.obsidian.md/Plugins/Daily+notes) plugin doesn't backfill notes for the days you didn't open Obsidian. This plugin does.
 
-It uses opinionated folder structures that aren't configurable (though you can configure the date format of each folder):
-  - Daily Notes: `YEAR / MONTH / DAY -`
-  - Monthly Notes: `YEAR / {custom-name} / MONTH -`
+It uses an opinionated folder structure that isn't configurable:
+  - **Daily Notes**: `ROOT / YEAR / MONTH / DAY -`
+  - **Monthly Notes**: `ROOT / YEAR / {custom-name} / MONTH -`
 
-The base of the filename in each folder should not be changed, `DAY -` for Daily Notes or `MONTH -` for Monthly Notes as that's what the plugin uses to identify each note.
+You can customize the date format of `YEAR`, `MONTH`, `DAY`, or set/remove the `ROOT`, but this plugin depends on organizing the filesystem by `YEAR`/`MONTH`/`DAY`.
+
+The base of the filename in each folder should not be changed, e.g. `DAY -` for Daily Notes or `MONTH -` for Monthly Notes.
 
 For instance, by default Daily Notes will be created like so,
 
-`2023/August/11 -`
+`Journal/2023/August/11 -`
 
 You can add whatever you'd like after the title,
 
-`2023/August/11 - Work, Dog Park, Climb with Friends & Grab Dinner`
+`Journal/2023/August/11 - Work, Dog Park, Climb with Friends & Grab Dinner`
 
 But make sure not to change the day part of the title, `11 -`
 
@@ -61,7 +63,7 @@ For Monthly Notes:
     ```
    </details>
 
-- [Templater](https://github.com/SilentVoid13/Templater): Useful for inserting dates and other properties into your journal entries
+- [Templater](https://github.com/SilentVoid13/Templater): Useful for inserting dates and other properties into your journal entry template
   <details>
   <summary>
   Click to see journal template
@@ -120,9 +122,9 @@ For Monthly Notes:
   ```
   </details>
 
-- [@ Symbol Linking](https://github.com/Ebonsignori/obsidian-at-symbol-linking) I keep a `People` directory at the top of my journal that I regularly link to with the `@` symbol. This plugin will only look for links in that directory when typing `@` if you configure it to
+- [@ Symbol Linking](https://github.com/Ebonsignori/obsidian-at-symbol-linking) I keep a `People` directory at the top of my journal that I regularly link to with the `@` symbol. You can configure this plugin to only look for links in that directory when typing `@`
 
-- [Google Photos](https://github.com/alangrainger/obsidian-google-photos) Useful way to include photos in each of your entries but still manage them in a separate app. This plugin will create thumbnails so you can still see the photos, but they'll be hosted by Google and not take up too much space in your vault.
+- [Google Photos](https://github.com/alangrainger/obsidian-google-photos) Useful way to include photos in each of your entries but while storing them in a separate app. This plugin will create thumbnails so you can still see the photos, but they'll be hosted by Google and not take up space in your vault.
 
 ## Installing
 
@@ -162,6 +164,6 @@ git tag 1.0.0
 git push origin 1.0.0
 ```
 
-[Release.yml](./.github/workflows/release.yml) will handle bumping the version and publishing a release to the [Releases Page](https://github.com/Ebonsignori/obsidian-at-symbol-linking/releases).
+[Release.yml](./.github/workflows/release.yml) will handle bumping the version and publishing a release to the [Releases Page](https://github.com/Ebonsignori/obsidian-auto-journal/releases).
 
-Remember to update the [newest release](https://github.com/Ebonsignori/obsidian-at-symbol-linking/releases) notes with any relevant changes.
+Remember to update the [newest release](https://github.com/Ebonsignori/obsidian-auto-journal/releases) notes with any relevant changes.

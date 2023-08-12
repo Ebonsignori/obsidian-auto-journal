@@ -23,6 +23,8 @@ export default class AutoJournal extends Plugin {
 				this.run();
 			},
 		});
+
+		await this.run();
 	}
 
 	async run() {

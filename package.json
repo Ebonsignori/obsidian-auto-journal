@@ -1,7 +1,7 @@
 {
 	"name": "obsidian-auto-journal",
 	"version": "1.0.0",
-	"description": "Automatically create daily journal and/or monthly check-in notes in Obsidian. Optionally add reminders for these notes.",
+	"description": "Opinionated journaling automation like daily notes but with backfills for the days that you didn't open Obsidian.",
 	"main": "main.js",
 	"engines": {
 		"node": ">=16"
