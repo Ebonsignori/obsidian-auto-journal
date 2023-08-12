@@ -88,38 +88,30 @@ export class SettingsTab extends PluginSettingTab {
 		}
 
 		if (settings.dailyNotesEnabled) {
-			if (!settings.dailyNotesTemplateFile) {
-				new Notice(
-					`Must select a template file when daily notes are enabled.`
+			if (settings.dailyNotesTemplateFile) {
+				const templateFile = this.app.vault.getAbstractFileByPath(
+					`${settings.dailyNotesTemplateFile}.md`
 				);
-				return updateSetting("dailyNotesEnabled", false);
-			}
-			const templateFile = this.app.vault.getAbstractFileByPath(
-				`${settings.dailyNotesTemplateFile}.md`
-			);
-			if (!templateFile) {
-				new Notice(
-					`Daily notes template file not found in ${settings.dailyNotesTemplateFile}. Please update template file in the settings.`
-				);
-				return updateSetting("dailyNotesEnabled", false);
+				if (!templateFile) {
+					new Notice(
+						`Daily notes template file not found in ${settings.dailyNotesTemplateFile}. Please update template file in the settings.`
+					);
+					return updateSetting("dailyNotesEnabled", false);
+				}
 			}
 		}
 
 		if (settings.monthlyNotesEnabled) {
-			if (!settings.monthlyNotesTemplateFile) {
-				new Notice(
-					`Must select a template file when monthly notes are enabled.`
+			if (settings.monthlyNotesTemplateFile) {
+				const templateFile = this.app.vault.getAbstractFileByPath(
+					`${settings.monthlyNotesTemplateFile}.md`
 				);
-				return updateSetting("monthlyNotesEnabled", false);
-			}
-			const templateFile = this.app.vault.getAbstractFileByPath(
-				`${settings.monthlyNotesTemplateFile}.md`
-			);
-			if (!templateFile) {
-				new Notice(
-					`Monthly notes template file not found in ${settings.monthlyNotesTemplateFile}. Please update template file in the settings.`
-				);
-				return updateSetting("monthlyNotesEnabled", false);
+				if (!templateFile) {
+					new Notice(
+						`Monthly notes template file not found in ${settings.monthlyNotesTemplateFile}. Please update template file in the settings.`
+					);
+					return updateSetting("monthlyNotesEnabled", false);
+				}
 			}
 		}
 	}
@@ -340,8 +332,8 @@ export class SettingsTab extends PluginSettingTab {
 		notesTemplateFileDesc.append(
 			`Path to the template file used to create ${lowerType} notes. `,
 			notesTemplateFileDesc.createEl("br"),
-			notesTemplateFileDesc.createEl("strong", {
-				text: `Required when ${lowerType} notes are enabled.`,
+			notesTemplateFileDesc.createEl("em", {
+				text: `Leave empty to create blank notes.`,
 			})
 		);
 		new Setting(this.containerEl)
@@ -349,11 +341,7 @@ export class SettingsTab extends PluginSettingTab {
 			.setDesc(notesTemplateFileDesc)
 			.addSearch((cb) => {
 				new FileSuggest(this.app, cb.inputEl);
-				cb.setPlaceholder(
-					type === "Daily"
-						? "Templates/journal"
-						: "Templates/check-in"
-				)
+				cb.setPlaceholder("No template")
 					.setValue(
 						this.plugin.settings[`${lowerType}NotesTemplateFile`]
 					)

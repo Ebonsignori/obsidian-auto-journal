@@ -1,8 +1,7 @@
 import { App, Notice, TFile, moment } from "obsidian";
 import { AutoJournalSettings, BackFillOptions } from "./settings/settings";
-import path from "path";
-
-const APP_NAME = "Auto Journal";
+import path from "path-browserify";
+import { APP_NAME, errorNotice } from "./utils";
 
 export default class Core {
 	app: App;
@@ -20,35 +19,38 @@ export default class Core {
 		this.monthlyFileFormat = `${this.settings.yearFormat}/[${this.settings.monthlyNotesFolderName}]/${this.settings.monthFormat} -`;
 
 		if (this.settings.dailyNotesEnabled) {
-			this.createDailyNote();
+			await this.createDailyNote().catch((error) => {
+				errorNotice(error.message);
+			});
 		}
 
 		if (this.settings.monthlyNotesEnabled) {
-			this.createMonthlyNote();
+			await this.createMonthlyNote().catch((error) => {
+				errorNotice(error.message);
+			});
 		}
 	}
 
 	async createDailyNote() {
-		if (!this.settings.dailyNotesTemplateFile) {
-			new Notice(
-				`No daily notes template file selected for ${APP_NAME}. Please select a template file in the settings.`
+		let templateContents = "";
+		if (this.settings.dailyNotesTemplateFile) {
+			const templateFile = this.app.vault.getAbstractFileByPath(
+				`${this.settings.dailyNotesTemplateFile}.md`
 			);
+			if (!templateFile) {
+				return new Notice(
+					`Daily notes template file not found in ${this.settings.dailyNotesTemplateFile} ${APP_NAME}. Please update template file in the settings.`
+				);
+			}
+			templateContents = await this.app.vault.read(templateFile as TFile);
 		}
-		const templateFile = this.app.vault.getAbstractFileByPath(
-			`${this.settings.dailyNotesTemplateFile}.md`
-		);
-		if (!templateFile) {
-			new Notice(
-				`Daily notes template file not found in ${this.settings.dailyNotesTemplateFile} ${APP_NAME}. Please update template file in the settings.`
-			);
-		}
-		const templateContents = await this.app.vault.read(
-			templateFile as TFile
-		);
 
 		const year = moment().format(this.settings.yearFormat);
+
 		for (let monthNumber = 0; monthNumber < 12; monthNumber++) {
-			const dateOfMonth = moment(`${year}-${monthNumber + 1}-01`);
+			const dateOfMonth = moment(
+				`${year}-${(monthNumber + 1).toString().padStart(2, "0")}-01`
+			);
 			const currentMonth = dateOfMonth
 				.month(monthNumber)
 				.format(this.settings.monthFormat);
@@ -127,28 +129,26 @@ export default class Core {
 					newFilePath,
 					templateContents,
 					filesInFolder
-				);
+				).catch((error) => {
+					errorNotice(error.message);
+				});
 			}
 		}
 	}
 
 	async createMonthlyNote() {
-		if (!this.settings.monthlyNotesTemplateFile) {
-			new Notice(
-				`No monthly notes template file selected for ${APP_NAME}. Please select a template file in the settings.`
+		let templateContents = "";
+		if (this.settings.monthlyNotesTemplateFile) {
+			const templateFile = this.app.vault.getAbstractFileByPath(
+				`${this.settings.monthlyNotesTemplateFile}.md`
 			);
+			if (!templateFile) {
+				return new Notice(
+					`Monthly notes template file not found in ${this.settings.monthlyNotesTemplateFile} ${APP_NAME}. Please update template file in the settings.`
+				);
+			}
+			templateContents = await this.app.vault.read(templateFile as TFile);
 		}
-		const templateFile = this.app.vault.getAbstractFileByPath(
-			`${this.settings.monthlyNotesTemplateFile}.md`
-		);
-		if (!templateFile) {
-			new Notice(
-				`Monthly notes template file not found in ${this.settings.monthlyNotesTemplateFile} ${APP_NAME}. Please update template file in the settings.`
-			);
-		}
-		const templateContents = await this.app.vault.read(
-			templateFile as TFile
-		);
 
 		const year = moment().format(this.settings.yearFormat);
 
@@ -176,9 +176,11 @@ export default class Core {
 
 		for (let monthNumber = 0; monthNumber < 12; monthNumber++) {
 			const monthDate = moment(
-				`${year}-${monthNumber + 1}-${
-					this.settings.monthlyNotesDayOfMonth
-				}`
+				`${year}-${(monthNumber + 1)
+					.toString()
+					.padStart(2, "0")}-${this.settings.monthlyNotesDayOfMonth
+					.toString()
+					.padStart(2, "0")}`
 			);
 
 			// Don't backfill for future months
@@ -224,7 +226,9 @@ export default class Core {
 				newFilePath,
 				templateContents,
 				filesInFolder
-			);
+			).catch((error) => {
+				errorNotice(error.message);
+			});
 		}
 	}
 
@@ -245,7 +249,14 @@ export default class Core {
 
 		// Check if the folder exists, if not, create it
 		if (!this.app.vault.getAbstractFileByPath(folderPath)) {
-			await this.app.vault.createFolder(folderPath);
+			let prevPath = "";
+			folderPath.split(path.sep).forEach((folderName) => {
+				const cascadePath = path.join(prevPath, folderName);
+				if (!this.app.vault.getAbstractFileByPath(cascadePath)) {
+					this.app.vault.createFolder(cascadePath);
+				}
+				prevPath = cascadePath;
+			});
 		}
 
 		// Check if the file exists for day, if not, create it

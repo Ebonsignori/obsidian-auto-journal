@@ -1,4 +1,4 @@
-import { Plugin } from "obsidian";
+import { Notice, Plugin } from "obsidian";
 import {
 	AutoJournalSettings,
 	DEFAULT_SETTINGS,
@@ -24,7 +24,9 @@ export default class AutoJournal extends Plugin {
 			},
 		});
 
-		await this.run();
+		this.app.workspace.onLayoutReady(() => {
+			this.run();
+		});
 	}
 
 	async run() {

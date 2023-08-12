@@ -1,3 +1,7 @@
+import { Notice } from "obsidian";
+
+export const APP_NAME = "Auto Journal";
+
 // Highlights the search result and adds it to the element
 // Derived from https://github.com/farzher/fuzzysort/blob/c7f1d2674d7fa526015646bc02fd17e29662d30c/fuzzysort.js#L132
 export function highlightSearch<T>(
@@ -50,4 +54,8 @@ export function highlightSearch<T>(
 			element.appendChild(document.createTextNode(char));
 		}
 	}
+}
+
+export function errorNotice(message: string): void {
+	new Notice(`${APP_NAME} error: ` + message, 5000);
 }
