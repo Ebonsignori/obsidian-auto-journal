@@ -1,6 +1,6 @@
 {
   "name": "obsidian-auto-journal",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Opinionated journaling automation like daily notes but with backfills for the days when Obsidian wasn't opened.",
   "main": "main.js",
   "engines": {
