@@ -1,6 +1,6 @@
 # Auto Journal
 
-The core [Daily notes](https://help.obsidian.md/Plugins/Daily+notes) plugin doesn't backfill notes for the days when Obsidian wasn't opened. This plugin does.
+The core [Daily notes](https://help.obsidian.md/Plugins/Daily+notes) plugin for [Obsidian](https://obsidian.md/) doesn't backfill notes for the days when Obsidian wasn't opened. This plugin does.
 
 It uses an opinionated folder structure that isn't configurable:
 
@@ -168,10 +168,6 @@ Please [open an issue](https://github.com/Ebonsignori/obsidian-auto-journal/issu
 
 Or feel free to fork and open a PR :heart:
 
-The implementation borrows from:
-
--   [auto-note-mover](https://github.com/farux/obsidian-auto-note-mover): For file suggesting in settings
-
 ### Local development
 
 1. Move this to your `.obsidian/plugins` directory in a vault you don't mind messing with.
@@ -193,3 +189,11 @@ git push origin 1.0.0
 [Release.yml](./.github/workflows/release.yml) will handle bumping the version and publishing a release to the [Releases Page](https://github.com/Ebonsignori/obsidian-auto-journal/releases).
 
 Remember to update the [newest release](https://github.com/Ebonsignori/obsidian-auto-journal/releases) notes with any relevant changes.
+
+## Acknowledgements
+
+[The Obsidian team](https://obsidian.md/about) for creating a wonderful product :purple_heart:
+
+The implementation borrows from:
+
+-   [auto-note-mover](https://github.com/farux/obsidian-auto-note-mover): For [file suggesting](./src//settings/file-suggest.ts) in settings.
