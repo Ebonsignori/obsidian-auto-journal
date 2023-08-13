@@ -1,7 +1,7 @@
 {
   "id": "auto-journal",
   "name": "Auto Journal",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "minAppVersion": "0.15.0",
   "description": "Opinionated journaling automation like daily notes but with backfills for the days when Obsidian wasn't opened",
   "author": "Evan Bonsignori",
