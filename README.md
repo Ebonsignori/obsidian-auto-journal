@@ -102,11 +102,11 @@ By default, the token `<$date-from-auto-journal$>` will be replaced by a date in
 
         ```
 
-        The frontmatter date set via Auto Journal token can be consumed by templater in other functions, e.g. `<% moment(tp.frontmatter.date).format("dddd, MMMM DD, YYYY") %>`
+        The frontmatter date set via Auto Journal token can be consumed by Templater in other functions, e.g. `<% moment(tp.frontmatter.date).format("dddd, MMMM DD, YYYY") %>`
 
         </details>
 
--   [Reminder](https://github.com/uphy/obsidian-reminder) Can include a reminder combined with templater to be notified when a monthly check-in is due to be filled out.
+-   [Reminder](https://github.com/uphy/obsidian-reminder) Can include a reminder combined with Templater to be notified when a monthly check-in is due to be filled out.
 
     -   <details>
         <summary>
