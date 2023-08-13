@@ -40,27 +40,28 @@ For Monthly Notes:
    </summary>
 
    ```
-    ---
-    sorting-spec: |
-    target-folder: /*
-    README
-    Check-Ins
-    January
-    February
-    March
-    April
-    May
-    June
-    July
-    August
-    September
-    October
-    November
-    December
-    ..
-    attachments
-    ---
-    ```
+   ---
+   sorting-spec: |
+	target-folder: /*
+	README
+	Check-Ins
+	January...
+	February...
+	March...
+	April...
+	May...
+	June...
+	July...
+	August...
+	September...
+	October...
+	November...
+	December...
+	...
+	< a-z
+	assets
+   ---
+   ```
    </details>
 
 - [Templater](https://github.com/SilentVoid13/Templater): Useful for inserting dates and other properties into your journal entry template.
