@@ -34,43 +34,47 @@ For Monthly Notes:
 
 -   `For year` backfill will a note each month before today month prefix, e.g. `January -` for each month of the year before this month
 
+### Templating the date in a backfill
+
+You can include a configurable token in a template to be replaced by the date that the file would have been created in a backfill.
+
+By default, the token `<$date-from-auto-journal$>` will be replaced by a date in format `YYYY-MM-DD`. If you add the date to your frontmatter, e.g. `date: <$date-from-auto-journal$>` you can use that date in other plugins.
+
 ## Plugins that pair well for daily journaling
 
-You can include a configurable token in a template to be replaced by the date that the file would have been created on if you had opened Obsidian (useful for backfills).
-
-By default, the token `<$date-from-auto-journal$>` will be replace by a date in format `YYYY-MM-DD`. If you add the date to your frontmatter, e.g. `date: <$date-from-auto-journal$>` you can use that date in other plugins.
 
 -   [Custom File Explorer sorting](https://github.com/SebastianMC/obsidian-custom-sort) Since the default names of each journal are the full names of the months e.g. `January` the following `sortspec` file placed in the root folder of your journal will organize them in the correct order on your filesystem.
-    - <details>
-      <summary>
-      Click to see sortspec
-      </summary>
 
-      ```
-      ---
-      sorting-spec: |
-       target-folder: /*
-       README
-       Check-Ins
-       January...
-       February...
-       March...
-       April...
-       May...
-       June...
-       July...
-       August...
-       September...
-       October...
-       November...
-       December...
-       ...
-       < a-z
-       assets
-      ---
-      ```
+    -   <details>
+        <summary>
+        Click to see sortspec
+        </summary>
 
-      </details>
+        ```
+        ---
+        sorting-spec: |
+         target-folder: /*
+         README
+         Check-Ins
+         January...
+         February...
+         March...
+         April...
+         May...
+         June...
+         July...
+         August...
+         September...
+         October...
+         November...
+         December...
+         ...
+         < a-z
+         assets
+        ---
+        ```
+
+        </details>
 
 -   [Templater](https://github.com/SilentVoid13/Templater): Useful for inserting dates and other properties into your journal entry template.
 
@@ -98,48 +102,50 @@ By default, the token `<$date-from-auto-journal$>` will be replace by a date in 
 
         ```
 
+        The frontmatter date set via Auto Journal token can be consumed by templater in other functions, e.g. `<% moment(tp.frontmatter.date).format("dddd, MMMM DD, YYYY") %>`
+
         </details>
 
-    -   In the above example the frontmatter date set via Auto Journal token cna be consumed by templater in other functions, e.g. `<% moment(tp.frontmatter.date).format("dddd, MMMM DD, YYYY") %>`
-
 -   [Reminder](https://github.com/uphy/obsidian-reminder) Can include a reminder combined with templater to be notified when a monthly check-in is due to be filled out.
-    - <details>
-      <summary>
-      Click to see check-in template
-      </summary>
 
-      ```
-      ---
-      date: <$date-from-auto-journal$>
-      tag: check-in
-      ---
-      # **<% moment(tp.frontmatter.date).format("MMMM, YYYY") %>  Check In** 📆
+    -   <details>
+        <summary>
+        Click to see check-in template
+        </summary>
 
-      - [ ] Fill out Check In  📆 <% moment(tp.frontmatter.date).format("YYYY-MM-DD") %>
+        ```
+        ---
+        date: <$date-from-auto-journal$>
+        tag: check-in
+        ---
+        # **<% moment(tp.frontmatter.date).format("MMMM, YYYY") %>  Check In** 📆
 
-      ### 1. How are you? How was this month?
+        - [ ] Fill out Check In  📆 <% moment(tp.frontmatter.date).format("YYYY-MM-DD") %>
 
-
-      ### 2. What did you prioritize this month?
+        ### 1. How are you? How was this month?
 
 
-      ### 3. Where do you see yourself in 1, 3, & 5 years? Has your long term vision changed?
+        ### 2. What did you prioritize this month?
 
 
-      ### 4. Are your habits and goals aligned with this current vision? If so what needs to be changed to meet them?
+        ### 3. Where do you see yourself in 1, 3, & 5 years? Has your long term vision changed?
 
 
-      ### 5. Is there anything missing from your life?
+        ### 4. Are your habits and goals aligned with this current vision? If so what needs to be changed to meet them?
 
 
-      ### 6. Take back to reflect on the month. What progress did you make? What are you grateful for?
+        ### 5. Is there anything missing from your life?
 
 
-      ### 7. What are looking forward to in the next month?
-      ```
+        ### 6. Take back to reflect on the month. What progress did you make? What are you grateful for?
 
-      </details>
-    - The above example uses the Tasks Plugin date format which must be set in Reminder's settings.
+
+        ### 7. What are looking forward to in the next month?
+        ```
+
+        The above example uses the Tasks Plugin date format which must be set in Reminder's settings.
+
+        </details>
 
 -   [@ Symbol Linking](https://github.com/Ebonsignori/obsidian-at-symbol-linking) I keep a `People` directory at the top of my journal that I regularly link to with the `@` symbol. You can configure this plugin to only look for links in that directory when typing `@`.
 
