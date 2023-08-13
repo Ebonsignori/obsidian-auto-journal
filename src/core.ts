@@ -2,6 +2,7 @@ import { App, Notice, TFile, moment } from "obsidian";
 import { AutoJournalSettings, BackFillOptions } from "./settings/settings";
 import path from "path-browserify";
 import { APP_NAME, errorNotice } from "./utils";
+import { Moment } from "moment";
 
 export default class Core {
 	app: App;
@@ -126,6 +127,7 @@ export default class Core {
 				// Create the file for the day
 				const newFilePath = dayDate.format(this.dailyFileFormat);
 				await this.createNewFile(
+					dayDate,
 					newFilePath,
 					templateContents,
 					filesInFolder
@@ -223,6 +225,7 @@ export default class Core {
 			// Create the file for the day
 			const newFilePath = monthDate.format(this.monthlyFileFormat);
 			await this.createNewFile(
+				monthDate,
 				newFilePath,
 				templateContents,
 				filesInFolder
@@ -233,6 +236,7 @@ export default class Core {
 	}
 
 	async createNewFile(
+		createdDate: Moment,
 		newFilePath: string,
 		templateContents: string,
 		filesInFolder: TFile[]
@@ -268,6 +272,16 @@ export default class Core {
 				existingFile = file;
 				break;
 			}
+		}
+
+		if (
+			this.settings.shouldTemplateDate &&
+			templateContents.includes(this.settings.templateDateToken)
+		) {
+			templateContents = templateContents.replace(
+				this.settings.templateDateToken,
+				createdDate.format(this.settings.templateDateFormat)
+			);
 		}
 
 		if (!existingFile) {

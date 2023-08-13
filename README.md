@@ -3,8 +3,9 @@
 The core [Daily notes](https://help.obsidian.md/Plugins/Daily+notes) plugin doesn't backfill notes for the days when Obsidian wasn't opened. This plugin does.
 
 It uses an opinionated folder structure that isn't configurable:
-  - **Daily Notes**: `ROOT / YEAR / MONTH / DAY -`
-  - **Monthly Notes**: `ROOT / YEAR / {custom-name} / MONTH -`
+
+-   **Daily Notes**: `ROOT / YEAR / MONTH / DAY -`
+-   **Monthly Notes**: `ROOT / YEAR / {custom-name} / MONTH -`
 
 You can customize the date format of `YEAR`, `MONTH`, `DAY`, or set/remove the `ROOT`, but this plugin depends on organizing the filesystem by `YEAR`/`MONTH`/`DAY`.
 
@@ -25,106 +26,123 @@ But make sure not to change the day part of the title, `11 -`
 When enabled, backfilling will create notes for previous days of the month/year when you didn't open the plugin.
 
 For Daily Notes:
-  - `For year` backfill will create a folder for each month before today and a note with the day prefix, e.g. `11 -` for each day of the month before today
-  - `For month` backfill will create a note with the day prefix, e.g. `11 -` for each day of the month before today
+
+-   `For year` backfill will create a folder for each month before today and a note with the day prefix, e.g. `11 -` for each day of the month before today
+-   `For month` backfill will create a note with the day prefix, e.g. `11 -` for each day of the month before today
 
 For Monthly Notes:
-  - `For year` backfill will a note each month before today month prefix, e.g. `January -` for each month of the year before this month
+
+-   `For year` backfill will a note each month before today month prefix, e.g. `January -` for each month of the year before this month
 
 ## Plugins that pair well for daily journaling
 
-- [Custom File Explorer sorting](https://github.com/SebastianMC/obsidian-custom-sort) Since the default names of each journal are the full names of the months e.g. `January` the following `sortspec` file placed in the root folder of your journal will organize them in the correct order on your filesystem.
-   <details>
-   <summary>
-   Click to see sortspec
-   </summary>
+You can include a configurable token in a template to be replaced by the date that the file would have been created on if you had opened Obsidian (useful for backfills).
 
-   ```
-    ---
-    sorting-spec: |
-    target-folder: /*
-    README
-    Check-Ins
-    January
-    February
-    March
-    April
-    May
-    June
-    July
-    August
-    September
-    October
-    November
-    December
-    ..
-    attachments
-    ---
-    ```
-   </details>
+By default, the token `<$date-from-auto-journal$>` will be replace by a date in format `YYYY-MM-DD`. If you add the date to your frontmatter, e.g. `date: <$date-from-auto-journal$>` you can use that date in other plugins.
 
-- [Templater](https://github.com/SilentVoid13/Templater): Useful for inserting dates and other properties into your journal entry template.
-  <details>
-  <summary>
-  Click to see journal template
-  </summary>
+-   [Custom File Explorer sorting](https://github.com/SebastianMC/obsidian-custom-sort) Since the default names of each journal are the full names of the months e.g. `January` the following `sortspec` file placed in the root folder of your journal will organize them in the correct order on your filesystem.
+    - <details>
+      <summary>
+      Click to see sortspec
+      </summary>
 
-  ```
-    ---
-    tag: journal
-    ---
+      ```
+      ---
+      sorting-spec: |
+      target-folder: /*
+      README
+      Check-Ins
+      January
+      February
+      March
+      April
+      May
+      June
+      July
+      August
+      September
+      October
+      November
+      December
+      ..
+      attachments
+      ---
+      ```
 
-    # <% moment(tp.date.now("YYYY-MM-DD"),'YYYY-MM-DD').format("dddd, MMMM DD, YYYY") %> 📆
+      </details>
 
-    ## People 👤
-    - 
+-   [Templater](https://github.com/SilentVoid13/Templater): Useful for inserting dates and other properties into your journal entry template.
 
-    ## Grateful For 💙
+    -   **Required:** You must enable the _"Trigger Templater on new file creation"_ setting for templater to work with Auto Journal
+    -   <details>
+        <summary>
+        Click to see journal template
+        </summary>
 
+        ```
+        ---
+        date: <$date-from-auto-journal$>
+        tag: journal
+        ---
 
-    ## Photos 📸
-  ```
-  </details>
+        # <% moment(tp.frontmatter.date).format("dddd, MMMM DD, YYYY") %> 📆
 
-- [Reminder](https://github.com/uphy/obsidian-reminder) Can include a reminder combined with templater to be notified when a monthly check-in is due to be filled out.
-  <details>
-  <summary>
-  Click to see check-in template
-  </summary>
+        ## People 👤
+        -
 
-  ```
-  ---
-  tag: check-in
-  ---
-  # **<% moment().format("MMMM, YYYY") %>  Check In** 📆
-
-  - [ ] Fill out Check In  (@<% moment().format("YYYY"-"MM"-"DD") %>)
-
-  ### 1. How are you? How was this month?
+        ## Grateful For 💙
 
 
-  ### 2. What did you prioritize this month?
+        ## Photos 📸
+
+        ```
+
+        </details>
+
+    -   In the above example the frontmatter date set via Auto Journal token cna be consumed by templater in other functions, e.g. `<% moment(tp.frontmatter.date).format("dddd, MMMM DD, YYYY") %>`
+
+-   [Reminder](https://github.com/uphy/obsidian-reminder) Can include a reminder combined with templater to be notified when a monthly check-in is due to be filled out.
+    - <details>
+      <summary>
+      Click to see check-in template
+      </summary>
+
+      ```
+      ---
+      date: <$date-from-auto-journal$>
+      tag: check-in
+      ---
+      # **<% moment(tp.frontmatter.date).format("MMMM, YYYY") %>  Check In** 📆
+
+      - [ ] Fill out Check In  📆 <% moment(tp.frontmatter.date).format("YYYY-MM-DD") %>
+
+      ### 1. How are you? How was this month?
 
 
-  ### 3. Where do you see yourself in 1, 3, & 5 years? Has your long term vision changed?
+      ### 2. What did you prioritize this month?
 
 
-  ### 4. Are your habits and goals aligned with this current vision? If so what needs to be changed to meet them?
+      ### 3. Where do you see yourself in 1, 3, & 5 years? Has your long term vision changed?
 
 
-  ### 5. Is there anything missing from your life?
+      ### 4. Are your habits and goals aligned with this current vision? If so what needs to be changed to meet them?
 
 
-  ### 6. Take back to reflect on the month. What progress did you make? What are you grateful for?
+      ### 5. Is there anything missing from your life?
 
 
-  ### 7. What are looking forward to in the next month? 
-  ```
-  </details>
+      ### 6. Take back to reflect on the month. What progress did you make? What are you grateful for?
 
-- [@ Symbol Linking](https://github.com/Ebonsignori/obsidian-at-symbol-linking) I keep a `People` directory at the top of my journal that I regularly link to with the `@` symbol. You can configure this plugin to only look for links in that directory when typing `@`.
 
-- [Google Photos](https://github.com/alangrainger/obsidian-google-photos) Useful way to include photos in each of your entries while storing them in a separate app. This plugin will create thumbnails so you can still see the photos, but they'll be hosted by Google and not take up space in your vault.
+      ### 7. What are looking forward to in the next month?
+      ```
+
+      </details>
+    - The above example uses the Tasks Plugin date format which must be set in Reminder's settings.
+
+-   [@ Symbol Linking](https://github.com/Ebonsignori/obsidian-at-symbol-linking) I keep a `People` directory at the top of my journal that I regularly link to with the `@` symbol. You can configure this plugin to only look for links in that directory when typing `@`.
+
+-   [Google Photos](https://github.com/alangrainger/obsidian-google-photos) Useful way to include photos in each of your entries while storing them in a separate app. This plugin will create thumbnails so you can still see the photos, but they'll be hosted by Google and not take up space in your vault.
 
 ## Installing
 
@@ -137,7 +155,7 @@ The preferred method is adding this through the [built-in community plugin brows
 1. In Obsidian go to `Settings -> Community Plugins`
 1. Enable community plugins if they aren't already enabled, then and enable the checkbox for `Auto Journal`
 
-## Contributing 
+## Contributing
 
 Please [open an issue](https://github.com/Ebonsignori/obsidian-auto-journal/issues/new) with any suggestions or bug reports.
 
@@ -145,7 +163,7 @@ Or feel free to fork and open a PR :heart:
 
 The implementation borrows from:
 
-- [auto-note-mover](https://github.com/farux/obsidian-auto-note-mover): For file suggesting in settings 
+-   [auto-note-mover](https://github.com/farux/obsidian-auto-note-mover): For file suggesting in settings
 
 ### Local development
 
@@ -159,6 +177,7 @@ The implementation borrows from:
 Once changes are in `main`, add a tag reflecting the new semver (without the `v` prefix) and push the tag to the repo.
 
 For example:
+
 ```
 git tag 1.0.0
 git push origin 1.0.0

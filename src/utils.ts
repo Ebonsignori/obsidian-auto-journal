@@ -1,5 +1,6 @@
 import { Notice } from "obsidian";
 
+// Constants
 export const APP_NAME = "Auto Journal";
 
 // Highlights the search result and adds it to the element

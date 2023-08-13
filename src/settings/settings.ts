@@ -26,6 +26,10 @@ export interface AutoJournalSettings {
 	monthlyNotesShouldNotify: boolean;
 	monthlyNotesBackfill: BackFillOptions;
 	monthlyNotesDayOfMonth: number;
+
+	shouldTemplateDate: boolean;
+	templateDateToken: string;
+	templateDateFormat: string;
 }
 
 export const DEFAULT_SETTINGS: AutoJournalSettings = {
@@ -45,6 +49,10 @@ export const DEFAULT_SETTINGS: AutoJournalSettings = {
 	monthlyNotesDayOfMonth: 1,
 	monthlyNotesShouldNotify: true,
 	monthlyNotesBackfill: BackFillOptions.NONE,
+
+	shouldTemplateDate: true,
+	templateDateToken: "<$date-from-auto-journal$>",
+	templateDateFormat: "YYYY-MM-DD",
 };
 
 export class SettingsTab extends PluginSettingTab {
@@ -231,6 +239,79 @@ export class SettingsTab extends PluginSettingTab {
 				};
 			});
 		// - - - End Option: monthlyNotesDayOfMonth
+
+		const templateDatesSectionDesc = document.createDocumentFragment();
+		templateDatesSectionDesc.append(
+			createHeading(templateDatesSectionDesc, "Template date"),
+			`You can replace a token in the template file with the date that the file is supposed to represent.`
+		);
+		new Setting(this.containerEl).setDesc(templateDatesSectionDesc);
+
+		// - - - Begin Option: shouldTemplateDate
+		const shouldTemplateDateDesc = document.createDocumentFragment();
+		shouldTemplateDateDesc.append(
+			`Toggle on/off to replace the token from template file in new note.`
+		);
+		new Setting(this.containerEl)
+			.setName(`Should replace token?`)
+			.setDesc(shouldTemplateDateDesc)
+			.addToggle((toggle) => {
+				toggle
+					.setValue(this.plugin.settings["shouldTemplateDate"])
+					.onChange(async (value: boolean) => {
+						this.plugin.settings["shouldTemplateDate"] = value;
+						await this.plugin.saveSettings();
+					});
+			});
+		// - - - End Option: shouldTemplateDate
+
+		// - - - Begin Option: templateDateToken
+		const templateDateTokenDesc = document.createDocumentFragment();
+		templateDateTokenDesc.append(
+			`Value of token to replace with date in template file.`
+		);
+		new Setting(this.containerEl)
+			.setName(`Template date token`)
+			.setDesc(templateDateTokenDesc)
+			.addText((text) => {
+				text.setPlaceholder("<$date-from-auto-journal$>")
+					.setValue(this.plugin.settings["templateDateToken"])
+					.onChange(async (value: string) => {
+						this.plugin.settings["templateDateToken"] = value;
+						await this.plugin.saveSettings();
+					});
+				text.inputEl.onblur = () => {
+					this.display();
+				};
+			});
+		// - - - End Option: templateDateToken
+
+		// - - - Begin Option: templateDateFormat
+		const templateDateFormatDesc = document.createDocumentFragment();
+		templateDateFormatDesc.append(
+			`Format for the date that will replace the token. In `,
+			createLink(
+				templateDateFormatDesc,
+				"moment.js date format",
+				"https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/"
+			),
+			"."
+		);
+		new Setting(this.containerEl)
+			.setName(`Template date format`)
+			.setDesc(templateDateFormatDesc)
+			.addMomentFormat((text) => {
+				text.setPlaceholder("YYYY-MM-DD")
+					.setValue(this.plugin.settings["templateDateFormat"])
+					.onChange(async (value: string) => {
+						this.plugin.settings["templateDateFormat"] = value;
+						await this.plugin.saveSettings();
+					});
+				text.inputEl.onblur = () => {
+					this.display();
+				};
+			});
+		// - - - End Option: templateDateFormat
 	}
 
 	createDateFormatSetting(type: "Year" | "Month" | "Day"): void {
