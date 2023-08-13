@@ -1,9 +1,13 @@
-import { App, Notice, TFile, moment } from "obsidian";
-import { AutoJournalSettings, BackFillOptions } from "./settings/settings";
+import { App, Notice, TFile } from "obsidian";
+import moment, { Moment } from "moment-timezone";
 import path from "path-browserify";
+import { AutoJournalSettings, BackFillOptions } from "./settings/settings";
 import { APP_NAME, errorNotice } from "./utils";
-import { Moment } from "moment";
 
+/**
+ * The core logic of the plugin
+ * Creates daily and monthly notes based on the user's settings
+ */
 export default class Core {
 	app: App;
 	settings: AutoJournalSettings;
@@ -40,24 +44,22 @@ export default class Core {
 			);
 			if (!templateFile) {
 				return new Notice(
-					`Daily notes template file not found in ${this.settings.dailyNotesTemplateFile} ${APP_NAME}. Please update template file in the settings.`
+					`${APP_NAME}: Daily notes template file not found in ${this.settings.dailyNotesTemplateFile} ${APP_NAME}. Please update template file in the settings.`
 				);
 			}
 			templateContents = await this.app.vault.read(templateFile as TFile);
 		}
 
-		const year = moment().format(this.settings.yearFormat);
+		const year = this.newDate().format(this.settings.yearFormat);
 
 		for (let monthNumber = 0; monthNumber < 12; monthNumber++) {
-			const dateOfMonth = moment(
-				`${year}-${(monthNumber + 1).toString().padStart(2, "0")}-01`
-			);
+			const dateOfMonth = this.newDate(year, monthNumber + 1, 1);
 			const currentMonth = dateOfMonth
 				.month(monthNumber)
 				.format(this.settings.monthFormat);
 
 			// Don't backfill for future months
-			if (moment().get("month") < monthNumber) {
+			if (this.newDate().get("month") < monthNumber) {
 				continue;
 			}
 
@@ -66,7 +68,8 @@ export default class Core {
 				this.settings.dailyNotesBackfill === BackFillOptions.NONE
 			) {
 				if (
-					currentMonth !== moment().format(this.settings.monthFormat)
+					currentMonth !==
+					this.newDate().format(this.settings.monthFormat)
 				) {
 					continue;
 				}
@@ -88,16 +91,17 @@ export default class Core {
 				return file.path.startsWith(folderPath);
 			});
 
-			const daysInMonth = moment().daysInMonth();
+			const daysInMonth = this.newDate().daysInMonth();
 			// Make sure there is an entry for each day of the month
 			for (let day = 1; day <= daysInMonth; day++) {
-				const dayDate = moment(`${year}-${monthNumber + 1}-${day}`);
+				const dayDate = this.newDate(year, monthNumber + 1, day);
 
 				// If we are in the current month, only add entires up to today
 				if (
-					currentMonth === moment().format(this.settings.monthFormat)
+					currentMonth ===
+					this.newDate().format(this.settings.monthFormat)
 				) {
-					if (dayDate.date() > moment().date()) {
+					if (dayDate.date() > this.newDate().date()) {
 						continue;
 					}
 				}
@@ -119,15 +123,22 @@ export default class Core {
 				// If backfill is set to NONE, don't create for days before today
 				if (
 					this.settings.dailyNotesBackfill === BackFillOptions.NONE &&
-					dayDate.date() < moment().date()
+					dayDate.date() < this.newDate().date()
 				) {
 					continue;
+				}
+
+				// When the note is for the current day, and the "use today for latest note" setting is enabled
+				// Set the date to today, a minute in the future to support notifications via Reminder plugin
+				let createFileDate = dayDate;
+				if (this.settings.useTodayForLatestNote && this.newDate().date() === dayDate.date()) {
+					createFileDate = this.newDate().add(1, "minute");
 				}
 
 				// Create the file for the day
 				const newFilePath = dayDate.format(this.dailyFileFormat);
 				await this.createNewFile(
-					dayDate,
+					createFileDate,
 					newFilePath,
 					templateContents,
 					filesInFolder
@@ -146,16 +157,16 @@ export default class Core {
 			);
 			if (!templateFile) {
 				return new Notice(
-					`Monthly notes template file not found in ${this.settings.monthlyNotesTemplateFile} ${APP_NAME}. Please update template file in the settings.`
+					`${APP_NAME}: Monthly notes template file not found in ${this.settings.monthlyNotesTemplateFile} ${APP_NAME}. Please update template file in the settings.`
 				);
 			}
 			templateContents = await this.app.vault.read(templateFile as TFile);
 		}
 
-		const year = moment().format(this.settings.yearFormat);
+		const year = this.newDate().format(this.settings.yearFormat);
 
 		const dayOfMonthFilePath =
-			moment().format(this.monthlyFileFormat) + ".md";
+			this.newDate().format(this.monthlyFileFormat) + ".md";
 		const monthlyNotesFolderPath = path.dirname(dayOfMonthFilePath);
 
 		// Get all the files in the month folder
@@ -177,16 +188,14 @@ export default class Core {
 		});
 
 		for (let monthNumber = 0; monthNumber < 12; monthNumber++) {
-			const monthDate = moment(
-				`${year}-${(monthNumber + 1)
-					.toString()
-					.padStart(2, "0")}-${this.settings.monthlyNotesDayOfMonth
-					.toString()
-					.padStart(2, "0")}`
+			const monthDate = this.newDate(
+				year,
+				monthNumber + 1,
+				this.settings.monthlyNotesDayOfMonth
 			);
 
 			// Don't backfill for future months
-			if (moment().get("month") < monthNumber) {
+			if (this.newDate().get("month") < monthNumber) {
 				continue;
 			}
 
@@ -194,7 +203,7 @@ export default class Core {
 			if (this.settings.monthlyNotesBackfill !== BackFillOptions.YEAR) {
 				if (
 					monthDate.format(this.settings.monthFormat) !==
-					moment().format(this.settings.monthFormat)
+					this.newDate().format(this.settings.monthFormat)
 				) {
 					continue;
 				}
@@ -216,16 +225,23 @@ export default class Core {
 
 			// Don't create for day of month if before this.settings.monthlyNotesDayOfMonth
 			if (
-				moment().date() < this.settings.monthlyNotesDayOfMonth &&
-				monthNumber === moment().month()
+				this.newDate().date() < this.settings.monthlyNotesDayOfMonth &&
+				monthNumber === this.newDate().month()
 			) {
 				continue;
+			}
+
+			// When the note is for the current month, and the "use today for latest note" setting is enabled
+			// Set the date to today, a minute in the future to support notifications via Reminder plugin
+			let createFileDate = monthDate;
+			if (this.settings.useTodayForLatestNote && this.newDate().month() === monthDate.month()) {
+				createFileDate = this.newDate().add(1, "minute");
 			}
 
 			// Create the file for the day
 			const newFilePath = monthDate.format(this.monthlyFileFormat);
 			await this.createNewFile(
-				monthDate,
+				createFileDate,
 				newFilePath,
 				templateContents,
 				filesInFolder
@@ -280,12 +296,36 @@ export default class Core {
 		) {
 			templateContents = templateContents.replace(
 				this.settings.templateDateToken,
-				createdDate.format(this.settings.templateDateFormat)
+				createdDate.format(`${this.settings.templateDateFormat}`)
 			);
 		}
 
 		if (!existingFile) {
 			await this.app.vault.create(newFilePath, templateContents);
 		}
+	}
+
+	/**
+	 *
+	 * @param year - The year as a string e.g. "2021"
+	 * @param month - The month as a string e.g. "1"
+	 * @param day - The day as a string e.g. "1"
+	 * @returns A string in the format "YYYY-MM-DD"
+	 */
+	newDate(
+		year?: string | number,
+		month?: string | number,
+		day?: string | number
+	) {
+		const timezone = this.settings.timezone || moment.tz.guess();
+		if (!year || !month || !day) {
+			return moment().tz(timezone);
+		}
+		return moment(
+			`${year.toString()}-${month.toString().padStart(2, "0")}-${day
+				.toString()
+				.padStart(2, "0")}`,
+			"YYYY-MM-DD"
+		).tz(timezone);
 	}
 }

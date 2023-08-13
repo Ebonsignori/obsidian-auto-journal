@@ -1,4 +1,5 @@
 import { App, PluginSettingTab, Setting, Notice } from "obsidian";
+import moment from "moment-timezone";
 import AtSymbolLinking from "src/main";
 import { FileSuggest } from "./file-suggest";
 import { FolderSuggest } from "./folder-suggest";
@@ -11,6 +12,7 @@ export enum BackFillOptions {
 
 export interface AutoJournalSettings {
 	rootFolder: string;
+	timezone: string;
 	yearFormat: string;
 	monthFormat: string;
 	dayFormat: string;
@@ -30,10 +32,12 @@ export interface AutoJournalSettings {
 	shouldTemplateDate: boolean;
 	templateDateToken: string;
 	templateDateFormat: string;
+	useTodayForLatestNote: boolean;
 }
 
 export const DEFAULT_SETTINGS: AutoJournalSettings = {
 	rootFolder: "Journal",
+	timezone: "",
 	yearFormat: "YYYY",
 	monthFormat: "MMMM",
 	dayFormat: "DD",
@@ -53,6 +57,7 @@ export const DEFAULT_SETTINGS: AutoJournalSettings = {
 	shouldTemplateDate: true,
 	templateDateToken: "<$date-from-auto-journal$>",
 	templateDateFormat: "YYYY-MM-DD",
+	useTodayForLatestNote: true,
 };
 
 export class SettingsTab extends PluginSettingTab {
@@ -172,6 +177,28 @@ export class SettingsTab extends PluginSettingTab {
 				};
 			});
 		// - - - End Option: rootFolder
+
+		// - - - Begin Option: timezone
+		const timezoneDesc = document.createDocumentFragment();
+		timezoneDesc.append(
+			`Leave empty to attempt to use the timezone of the device (may not work on mobile).`,
+			timezoneDesc.createEl("br")
+		);
+		new Setting(this.containerEl)
+			.setName(`Timezone`)
+			.setDesc(timezoneDesc)
+			.addText((text) => {
+				text.setPlaceholder(moment.tz.guess(true))
+					.setValue(this.plugin.settings["timezone"])
+					.onChange(async (value: string) => {
+						this.plugin.settings["timezone"] = value;
+						await this.plugin.saveSettings();
+					});
+				text.inputEl.onblur = () => {
+					this.validate();
+				};
+			});
+		// - - - End Option: timezone
 
 		this.createDateFormatSetting("Year");
 		this.createDateFormatSetting("Month");
@@ -312,6 +339,24 @@ export class SettingsTab extends PluginSettingTab {
 				};
 			});
 		// - - - End Option: templateDateFormat
+
+		// - - - Begin Option: useTodayForLatestNote
+		const useTodayForLatestNoteDesc = document.createDocumentFragment();
+		useTodayForLatestNoteDesc.append(
+			`For the monthly notes, use today's date for this month's note instead of the monthly note's day of month setting.`
+		);
+		new Setting(this.containerEl)
+			.setName(`Use today for latest note?`)
+			.setDesc(useTodayForLatestNoteDesc)
+			.addToggle((toggle) => {
+				toggle
+					.setValue(this.plugin.settings["useTodayForLatestNote"])
+					.onChange(async (value: boolean) => {
+						this.plugin.settings["useTodayForLatestNote"] = value;
+						await this.plugin.saveSettings();
+					});
+			});
+		// - - - End Option: useTodayForLatestNote
 	}
 
 	createDateFormatSetting(type: "Year" | "Month" | "Day"): void {

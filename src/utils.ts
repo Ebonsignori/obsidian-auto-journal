@@ -3,8 +3,13 @@ import { Notice } from "obsidian";
 // Constants
 export const APP_NAME = "Auto Journal";
 
-// Highlights the search result and adds it to the element
-// Derived from https://github.com/farzher/fuzzysort/blob/c7f1d2674d7fa526015646bc02fd17e29662d30c/fuzzysort.js#L132
+/**
+ * Highlights the search result and adds it to an HTML element without using dangerouslySetInnerHTML
+ * Derived from https://github.com/farzher/fuzzysort/blob/c7f1d2674d7fa526015646bc02fd17e29662d30c/fuzzysort.js#L132
+ * @param element - The element to add the search result to
+ * @param result - The search result from fuzzysort
+ * @returns
+ */
 export function highlightSearch<T>(
 	element: HTMLElement,
 	result: Fuzzysort.KeyResult<T>
@@ -57,6 +62,13 @@ export function highlightSearch<T>(
 	}
 }
 
+/**
+ *
+ * Displays a notice with the message prefixed with the app name
+ *
+ * @param message - The message to display in the error notice
+ */
 export function errorNotice(message: string): void {
 	new Notice(`${APP_NAME} error: ` + message, 5000);
 }
+
