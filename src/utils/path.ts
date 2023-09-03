@@ -4,6 +4,8 @@ export function dirname(path: string): string {
 }
 
 export function join(...paths: string[]): string {
+	paths = paths.filter((path) => path !== "");
+	if (paths.length === 1) return paths[0];
 	paths = paths.map((path) => path.replace(/\/$/, ""));
 	return paths.join("/");
 }

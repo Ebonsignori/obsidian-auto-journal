@@ -281,13 +281,17 @@ export default class Core {
 		// Check if the folder exists, if not, create it
 		if (!this.app.vault.getAbstractFileByPath(folderPath)) {
 			let prevPath = "";
-			folderPath.split("/").forEach((folderName) => {
+			for (const folderName of folderPath.split("/")) {
 				const cascadePath = join(prevPath, folderName);
 				if (!this.app.vault.getAbstractFileByPath(cascadePath)) {
-					this.app.vault.createFolder(cascadePath);
+					try {
+						await this.app.vault.createFolder(cascadePath);
+					} catch (error) {
+						console.log("Error creating folder", error);
+					}
 				}
 				prevPath = cascadePath;
-			});
+			};
 		}
 
 		// Check if the file exists for day, if not, create it
