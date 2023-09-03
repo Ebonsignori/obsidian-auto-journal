@@ -196,4 +196,4 @@ Remember to update the [newest release](https://github.com/Ebonsignori/obsidian-
 
 The implementation borrows from:
 
--   [auto-note-mover](https://github.com/farux/obsidian-auto-note-mover): For [file suggesting](./src//settings/file-suggest.ts) in settings.
+- [suggest.ts](./src/utils/suggest.ts) and the [file-suggest.ts](./src/settings/file-suggest.ts) and [folder-suggest.ts](./src/settings/folder-suggest.ts) that use them  are copyrighted works of Liam Cain (https://github.com/liamcain) obsidian-periodic-notes (https://github.com/liamcain/obsidian-periodic-notes).

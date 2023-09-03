@@ -25,7 +25,9 @@ export default class AutoJournal extends Plugin {
 		});
 
 		this.app.workspace.onLayoutReady(() => {
-			this.run();
+			if (this.settings.automaticallyRun) {
+				this.run();
+			}
 		});
 	}
 

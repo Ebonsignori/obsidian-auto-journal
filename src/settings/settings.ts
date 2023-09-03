@@ -11,6 +11,8 @@ export enum BackFillOptions {
 }
 
 export interface AutoJournalSettings {
+	automaticallyRun: boolean;
+
 	rootFolder: string;
 	timezone: string;
 	yearFormat: string;
@@ -36,6 +38,8 @@ export interface AutoJournalSettings {
 }
 
 export const DEFAULT_SETTINGS: AutoJournalSettings = {
+	automaticallyRun: true,
+
 	rootFolder: "Journal",
 	timezone: "",
 	yearFormat: "YYYY",
@@ -133,24 +137,27 @@ export class SettingsTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
-		// Add a description to the top of the settings tab
-		const descEl = document.createDocumentFragment();
-		const dailyNotesPluginLink = createLink(
-			descEl,
-			"daily notes",
-			"https://help.obsidian.md/Plugins/Daily+notes"
+		this.containerEl.appendChild(
+			createHeading(containerEl, "Auto Journal settings", 2, false)
 		);
-		descEl.append(
-			createHeading(descEl, "Auto Journal"),
-			"The core ",
-			dailyNotesPluginLink,
-			" plugin doesn't backfill notes for the days when Obsidian wan't opened. This plugin does.",
-			descEl.createEl("br"),
-			"This plugin creates daily and/or monthly notes based on a template.",
-			descEl.createEl("br"),
-			"It's opinionated in that it creates notes in the following folder structure: root/year/month/day -.md"
+
+		// - - - Begin Option: automaticallyRun
+		const automaticallyRunDesc = document.createDocumentFragment();
+		automaticallyRunDesc.append(
+			`Run when Obsidian starts, otherwise you can run via the "Manually Trigger" command.`
 		);
-		new Setting(this.containerEl).setDesc(descEl);
+		new Setting(this.containerEl)
+			.setName(`Automatically run?`)
+			.setDesc(automaticallyRunDesc)
+			.addToggle((toggle) => {
+				toggle
+					.setValue(this.plugin.settings["automaticallyRun"])
+					.onChange(async (value: boolean) => {
+						this.plugin.settings["automaticallyRun"] = value;
+						await this.plugin.saveSettings();
+					});
+			});
+		// - - - End Option: automaticallyRun
 
 		// - - - Begin Option: rootFolder
 		const rootFolderDesc = document.createDocumentFragment();
@@ -178,6 +185,168 @@ export class SettingsTab extends PluginSettingTab {
 			});
 		// - - - End Option: rootFolder
 
+		this.createSharedSettings("Daily");
+		this.createSharedSettings("Monthly");
+
+		if (this.plugin.settings.monthlyNotesEnabled) {
+			// - - - Begin Option: monthlyNotesFolderName
+			const monthlyNotesFolderNameDesc =
+				document.createDocumentFragment();
+			monthlyNotesFolderNameDesc.append(
+				`Name of the folder to create monthly notes in.`
+			);
+			new Setting(this.containerEl)
+				.setName(`Monthly notes folder`)
+				.setDesc(monthlyNotesFolderNameDesc)
+				.addText((text) => {
+					text.setPlaceholder("Check-Ins")
+						.setValue(
+							this.plugin.settings["monthlyNotesFolderName"]
+						)
+						.onChange(async (value: string) => {
+							this.plugin.settings["monthlyNotesFolderName"] =
+								value;
+							await this.plugin.saveSettings();
+						});
+					text.inputEl.onblur = () => {
+						this.display();
+					};
+				});
+			// - - - End Option: monthlyNotesFolderName
+
+			// - - - Begin Option: monthlyNotesDayOfMonth
+			const monthlyNotesDayOfMonthDesc =
+				document.createDocumentFragment();
+			monthlyNotesDayOfMonthDesc.append(
+				`Day of the month to create monthly notes on.`
+			);
+			new Setting(this.containerEl)
+				.setName(`Monthly notes day of month`)
+				.setDesc(monthlyNotesDayOfMonthDesc)
+				.addText((text) => {
+					text.setPlaceholder("1")
+						.setValue(
+							this.plugin.settings[
+								"monthlyNotesDayOfMonth"
+							].toString()
+						)
+						.onChange(async (value: string) => {
+							if (isNaN(parseInt(value))) {
+								return this.display();
+							}
+							this.plugin.settings["monthlyNotesDayOfMonth"] =
+								parseInt(value);
+							await this.plugin.saveSettings();
+						});
+					text.inputEl.onblur = async () => {
+						const value =
+							this.plugin.settings["monthlyNotesDayOfMonth"];
+						if (value < 1) {
+							this.plugin.settings["monthlyNotesDayOfMonth"] = 1;
+							await this.plugin.saveSettings();
+							await this.display();
+						} else if (value > 28) {
+							this.plugin.settings["monthlyNotesDayOfMonth"] = 28;
+							await this.plugin.saveSettings();
+							await this.display();
+						}
+					};
+				});
+			// - - - End Option: monthlyNotesDayOfMonth
+
+			// - - - Begin Option: useTodayForLatestNote
+			const useTodayForLatestNoteDesc = document.createDocumentFragment();
+			useTodayForLatestNoteDesc.append(
+				`For the monthly notes, use today's date for this month's note instead of the monthly note's day of month setting.`
+			);
+			new Setting(this.containerEl)
+				.setName(`Use today for latest note?`)
+				.setDesc(useTodayForLatestNoteDesc)
+				.addToggle((toggle) => {
+					toggle
+						.setValue(this.plugin.settings["useTodayForLatestNote"])
+						.onChange(async (value: boolean) => {
+							this.plugin.settings["useTodayForLatestNote"] =
+								value;
+							await this.plugin.saveSettings();
+						});
+				});
+			// - - - End Option: useTodayForLatestNote
+		}
+
+		new Setting(this.containerEl).setName("Template date").setHeading();
+
+		// - - - Begin Option: shouldTemplateDate
+		const shouldTemplateDateDesc = document.createDocumentFragment();
+		shouldTemplateDateDesc.append(
+			`Toggle on/off to replace a token from template file in new note with date the file represents.`
+		);
+		new Setting(this.containerEl)
+			.setName(`Should replace token?`)
+			.setDesc(shouldTemplateDateDesc)
+			.addToggle((toggle) => {
+				toggle
+					.setValue(this.plugin.settings["shouldTemplateDate"])
+					.onChange(async (value: boolean) => {
+						this.plugin.settings["shouldTemplateDate"] = value;
+						this.display();
+						await this.plugin.saveSettings();
+					});
+			});
+		// - - - End Option: shouldTemplateDate
+
+		if (this.plugin.settings.shouldTemplateDate) {
+			// - - - Begin Option: templateDateToken
+			const templateDateTokenDesc = document.createDocumentFragment();
+			templateDateTokenDesc.append(
+				`Value of token to replace with date in template file.`
+			);
+			new Setting(this.containerEl)
+				.setName(`Template date token`)
+				.setDesc(templateDateTokenDesc)
+				.addText((text) => {
+					text.setPlaceholder("<$date-from-auto-journal$>")
+						.setValue(this.plugin.settings["templateDateToken"])
+						.onChange(async (value: string) => {
+							this.plugin.settings["templateDateToken"] = value;
+							await this.plugin.saveSettings();
+						});
+					text.inputEl.onblur = () => {
+						this.display();
+					};
+				});
+			// - - - End Option: templateDateToken
+
+			// - - - Begin Option: templateDateFormat
+			const templateDateFormatDesc = document.createDocumentFragment();
+			templateDateFormatDesc.append(
+				`Format for the date that will replace the token. In `,
+				createLink(
+					templateDateFormatDesc,
+					"moment.js date format",
+					"https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/"
+				),
+				"."
+			);
+			new Setting(this.containerEl)
+				.setName(`Template date format`)
+				.setDesc(templateDateFormatDesc)
+				.addMomentFormat((text) => {
+					text.setPlaceholder("YYYY-MM-DD")
+						.setValue(this.plugin.settings["templateDateFormat"])
+						.onChange(async (value: string) => {
+							this.plugin.settings["templateDateFormat"] = value;
+							await this.plugin.saveSettings();
+						});
+					text.inputEl.onblur = () => {
+						this.display();
+					};
+				});
+			// - - - End Option: templateDateFormat
+		}
+
+		new Setting(this.containerEl).setName("Advanced config").setHeading();
+
 		// - - - Begin Option: timezone
 		const timezoneDesc = document.createDocumentFragment();
 		timezoneDesc.append(
@@ -203,160 +372,6 @@ export class SettingsTab extends PluginSettingTab {
 		this.createDateFormatSetting("Year");
 		this.createDateFormatSetting("Month");
 		this.createDateFormatSetting("Day");
-
-		this.createSharedSettings("Daily");
-		this.createSharedSettings("Monthly");
-
-		// - - - Begin Option: monthlyNotesFolderName
-		const monthlyNotesFolderNameDesc = document.createDocumentFragment();
-		monthlyNotesFolderNameDesc.append(
-			`Name of the folder to create monthly notes in.`
-		);
-		new Setting(this.containerEl)
-			.setName(`Monthly notes folder`)
-			.setDesc(monthlyNotesFolderNameDesc)
-			.addText((text) => {
-				text.setPlaceholder("Check-Ins")
-					.setValue(this.plugin.settings["monthlyNotesFolderName"])
-					.onChange(async (value: string) => {
-						this.plugin.settings["monthlyNotesFolderName"] = value;
-						await this.plugin.saveSettings();
-					});
-				text.inputEl.onblur = () => {
-					this.display();
-				};
-			});
-		// - - - End Option: monthlyNotesFolderName
-
-		// - - - Begin Option: monthlyNotesDayOfMonth
-		const monthlyNotesDayOfMonthDesc = document.createDocumentFragment();
-		monthlyNotesDayOfMonthDesc.append(
-			`Day of the month to create monthly notes on.`
-		);
-		new Setting(this.containerEl)
-			.setName(`Monthly notes day of month`)
-			.setDesc(monthlyNotesDayOfMonthDesc)
-			.addText((text) => {
-				text.setPlaceholder("1")
-					.setValue(
-						this.plugin.settings[
-							"monthlyNotesDayOfMonth"
-						].toString()
-					)
-					.onChange(async (value: string) => {
-						if (isNaN(parseInt(value))) {
-							return this.display();
-						}
-						this.plugin.settings["monthlyNotesDayOfMonth"] =
-							parseInt(value);
-						await this.plugin.saveSettings();
-					});
-				text.inputEl.onblur = async () => {
-					const value =
-						this.plugin.settings["monthlyNotesDayOfMonth"];
-					if (value < 1) {
-						this.plugin.settings["monthlyNotesDayOfMonth"] = 1;
-						await this.plugin.saveSettings();
-						await this.display();
-					} else if (value > 28) {
-						this.plugin.settings["monthlyNotesDayOfMonth"] = 28;
-						await this.plugin.saveSettings();
-						await this.display();
-					}
-				};
-			});
-		// - - - End Option: monthlyNotesDayOfMonth
-
-		const templateDatesSectionDesc = document.createDocumentFragment();
-		templateDatesSectionDesc.append(
-			createHeading(templateDatesSectionDesc, "Template date"),
-			`You can replace a token in the template file with the date that the file is supposed to represent.`
-		);
-		new Setting(this.containerEl).setDesc(templateDatesSectionDesc);
-
-		// - - - Begin Option: shouldTemplateDate
-		const shouldTemplateDateDesc = document.createDocumentFragment();
-		shouldTemplateDateDesc.append(
-			`Toggle on/off to replace the token from template file in new note.`
-		);
-		new Setting(this.containerEl)
-			.setName(`Should replace token?`)
-			.setDesc(shouldTemplateDateDesc)
-			.addToggle((toggle) => {
-				toggle
-					.setValue(this.plugin.settings["shouldTemplateDate"])
-					.onChange(async (value: boolean) => {
-						this.plugin.settings["shouldTemplateDate"] = value;
-						await this.plugin.saveSettings();
-					});
-			});
-		// - - - End Option: shouldTemplateDate
-
-		// - - - Begin Option: templateDateToken
-		const templateDateTokenDesc = document.createDocumentFragment();
-		templateDateTokenDesc.append(
-			`Value of token to replace with date in template file.`
-		);
-		new Setting(this.containerEl)
-			.setName(`Template date token`)
-			.setDesc(templateDateTokenDesc)
-			.addText((text) => {
-				text.setPlaceholder("<$date-from-auto-journal$>")
-					.setValue(this.plugin.settings["templateDateToken"])
-					.onChange(async (value: string) => {
-						this.plugin.settings["templateDateToken"] = value;
-						await this.plugin.saveSettings();
-					});
-				text.inputEl.onblur = () => {
-					this.display();
-				};
-			});
-		// - - - End Option: templateDateToken
-
-		// - - - Begin Option: templateDateFormat
-		const templateDateFormatDesc = document.createDocumentFragment();
-		templateDateFormatDesc.append(
-			`Format for the date that will replace the token. In `,
-			createLink(
-				templateDateFormatDesc,
-				"moment.js date format",
-				"https://momentjscom.readthedocs.io/en/latest/moment/04-displaying/01-format/"
-			),
-			"."
-		);
-		new Setting(this.containerEl)
-			.setName(`Template date format`)
-			.setDesc(templateDateFormatDesc)
-			.addMomentFormat((text) => {
-				text.setPlaceholder("YYYY-MM-DD")
-					.setValue(this.plugin.settings["templateDateFormat"])
-					.onChange(async (value: string) => {
-						this.plugin.settings["templateDateFormat"] = value;
-						await this.plugin.saveSettings();
-					});
-				text.inputEl.onblur = () => {
-					this.display();
-				};
-			});
-		// - - - End Option: templateDateFormat
-
-		// - - - Begin Option: useTodayForLatestNote
-		const useTodayForLatestNoteDesc = document.createDocumentFragment();
-		useTodayForLatestNoteDesc.append(
-			`For the monthly notes, use today's date for this month's note instead of the monthly note's day of month setting.`
-		);
-		new Setting(this.containerEl)
-			.setName(`Use today for latest note?`)
-			.setDesc(useTodayForLatestNoteDesc)
-			.addToggle((toggle) => {
-				toggle
-					.setValue(this.plugin.settings["useTodayForLatestNote"])
-					.onChange(async (value: boolean) => {
-						this.plugin.settings["useTodayForLatestNote"] = value;
-						await this.plugin.saveSettings();
-					});
-			});
-		// - - - End Option: useTodayForLatestNote
 	}
 
 	createDateFormatSetting(type: "Year" | "Month" | "Day"): void {
@@ -398,26 +413,8 @@ export class SettingsTab extends PluginSettingTab {
 
 	createSharedSettings(type: "Daily" | "Monthly"): void {
 		const lowerType = type.toLowerCase() as "daily" | "monthly";
-		// Notes type Heading
-		const notesEl = document.createDocumentFragment();
-		const notesHeading = createHeading(notesEl, `${type} notes`);
 
-		let rootFolder = `[${this.plugin.settings.rootFolder}]/`;
-		if (this.plugin.settings.rootFolder === "") {
-			rootFolder = "";
-		}
-		let derivedFilePath = `${rootFolder}${this.plugin.settings.yearFormat}/${this.plugin.settings.monthFormat}/${this.plugin.settings.dayFormat} -	`;
-		if (type === "Monthly") {
-			derivedFilePath = `${rootFolder}${this.plugin.settings.yearFormat}/[${this.plugin.settings.monthlyNotesFolderName}]/${this.plugin.settings.monthFormat} -`;
-		}
-		const notesBody = notesEl.createEl("p", {
-			text: `Notes will be created using the following path: ${derivedFilePath}`,
-		});
-		notesBody.addClass("auto-journal-notes-body");
-		notesEl.append(notesHeading);
-		notesEl.append(notesBody);
-
-		new Setting(this.containerEl).setDesc(notesEl);
+		new Setting(this.containerEl).setName(`${type} notes`).setHeading();
 
 		// - - - Begin Option: notesEnabled
 		const createNotesDesc = document.createDocumentFragment();
@@ -434,6 +431,7 @@ export class SettingsTab extends PluginSettingTab {
 						this.plugin.settings[`${lowerType}NotesEnabled`] =
 							value;
 						await this.plugin.saveSettings();
+						this.display();
 						return this.validate();
 					});
 			});
@@ -453,93 +451,112 @@ export class SettingsTab extends PluginSettingTab {
 		// 	);
 		// - - - End Option: notesFilePath
 
-		// - - - Begin Option: notesTemplateFile
-		const notesTemplateFileDesc = document.createDocumentFragment();
-		notesTemplateFileDesc.append(
-			`Path to the template file used to create ${lowerType} notes. `,
-			notesTemplateFileDesc.createEl("br"),
-			notesTemplateFileDesc.createEl("em", {
-				text: `Leave empty to create blank notes.`,
-			})
-		);
-		new Setting(this.containerEl)
-			.setName(`${type} notes template`)
-			.setDesc(notesTemplateFileDesc)
-			.addSearch((cb) => {
-				new FileSuggest(this.app, cb.inputEl);
-				cb.setPlaceholder("No template")
-					.setValue(
-						this.plugin.settings[`${lowerType}NotesTemplateFile`]
-					)
-					.onChange(async (newFile) => {
-						this.plugin.settings[`${lowerType}NotesTemplateFile`] =
-							newFile.trim();
-						await this.plugin.saveSettings();
-					});
-				cb.inputEl.onblur = () => {
-					this.validate();
-				};
-			});
-		// - - - End Option: notesTemplateFile
-
-		// - - - Begin Option: backfillNotes
-		const backfillNotesDesc = document.createDocumentFragment();
-		let timeSpanText = [] as Array<HTMLElement | string>;
-		if (type === "Daily") {
-			timeSpanText = [
-				backfillNotesDesc.createEl("strong", { text: "For month" }),
-				": backfill notes for each previous day in the current month.",
-				backfillNotesDesc.createEl("br"),
-				backfillNotesDesc.createEl("strong", { text: "For year" }),
-				": backfill notes for each day in each previous month in the current year.",
-			];
-		} else if (type === "Monthly") {
-			timeSpanText = [
-				backfillNotesDesc.createEl("strong", { text: "For year" }),
-				": backfill notes for each previous month in the current year.",
-			];
-		}
-
-		backfillNotesDesc.append(
-			`Enable to create missing ${lowerType} notes for previous ${
-				type === "Daily" ? "days" : "months"
-			} upon opening Obsidian.`,
-			backfillNotesDesc.createEl("br"),
-			...timeSpanText
-		);
-		const options = {
-			[BackFillOptions.NONE]: BackFillOptions.NONE,
-			[BackFillOptions.YEAR]: BackFillOptions.YEAR,
-		};
-		if (type === "Daily") {
-			// @ts-expect-error adding to options
-			options[BackFillOptions.MONTH] = BackFillOptions.MONTH;
-		}
-		new Setting(this.containerEl)
-			.setName(`Backfill ${lowerType} notes?`)
-			.setDesc(backfillNotesDesc)
-			.addDropdown((dropdown) =>
-				dropdown
-					.addOptions(options)
-					.setValue(this.plugin.settings[`${lowerType}NotesBackfill`])
-					.onChange(async (value: BackFillOptions) => {
-						this.plugin.settings[`${lowerType}NotesBackfill`] =
-							value;
-						await this.plugin.saveSettings();
-					})
+		// Only show the following options if the notes are enabled
+		if (this.plugin.settings[`${lowerType}NotesEnabled`]) {
+			// - - - Begin Option: notesTemplateFile
+			const notesTemplateFileDesc = document.createDocumentFragment();
+			notesTemplateFileDesc.append(
+				`Path to the template file used to create ${lowerType} notes. `,
+				notesTemplateFileDesc.createEl("br"),
+				notesTemplateFileDesc.createEl("em", {
+					text: `Leave empty to create blank notes.`,
+				})
 			);
+			new Setting(this.containerEl)
+				.setName(`${type} notes template`)
+				.setDesc(notesTemplateFileDesc)
+				.addSearch((cb) => {
+					new FileSuggest(this.app, cb.inputEl);
+					cb.setPlaceholder("No template")
+						.setValue(
+							this.plugin.settings[
+								`${lowerType}NotesTemplateFile`
+							]
+						)
+						.onChange(async (newFile) => {
+							this.plugin.settings[
+								`${lowerType}NotesTemplateFile`
+							] = newFile.trim();
+							await this.plugin.saveSettings();
+						});
+					cb.inputEl.onblur = () => {
+						this.validate();
+					};
+				});
+			// - - - End Option: notesTemplateFile
+
+			// - - - Begin Option: backfillNotes
+			const backfillNotesDesc = document.createDocumentFragment();
+			let timeSpanText = [] as Array<HTMLElement | string>;
+			if (type === "Daily") {
+				timeSpanText = [
+					backfillNotesDesc.createEl("strong", { text: "For month" }),
+					": backfill notes for each previous day in the current month.",
+					backfillNotesDesc.createEl("br"),
+					backfillNotesDesc.createEl("strong", { text: "For year" }),
+					": backfill notes for each day in each previous month in the current year.",
+				];
+			} else if (type === "Monthly") {
+				timeSpanText = [
+					backfillNotesDesc.createEl("strong", { text: "For year" }),
+					": backfill notes for each previous month in the current year.",
+				];
+			}
+
+			backfillNotesDesc.append(
+				`Enable to create missing ${lowerType} notes for previous ${
+					type === "Daily" ? "days" : "months"
+				} upon opening Obsidian.`,
+				backfillNotesDesc.createEl("br"),
+				...timeSpanText
+			);
+			const options = {
+				[BackFillOptions.NONE]: BackFillOptions.NONE,
+				[BackFillOptions.YEAR]: BackFillOptions.YEAR,
+			};
+			if (type === "Daily") {
+				// @ts-expect-error adding to options
+				options[BackFillOptions.MONTH] = BackFillOptions.MONTH;
+			}
+			new Setting(this.containerEl)
+				.setName(`Backfill ${lowerType} notes?`)
+				.setDesc(backfillNotesDesc)
+				.addDropdown((dropdown) =>
+					dropdown
+						.addOptions(options)
+						.setValue(
+							this.plugin.settings[`${lowerType}NotesBackfill`]
+						)
+						.onChange(async (value: BackFillOptions) => {
+							this.plugin.settings[`${lowerType}NotesBackfill`] =
+								value;
+							await this.plugin.saveSettings();
+						})
+				);
+		}
 	}
 }
 
-function createHeading(el: DocumentFragment, text: string, level = 2) {
+function createHeading(
+	el: HTMLElement | DocumentFragment,
+	text: string,
+	level = 2,
+	includeClass = true
+) {
 	const heading = el.createEl(`h${level}` as keyof HTMLElementTagNameMap, {
 		text,
 	});
-	heading.addClass("auto-journal-heading");
+	if (includeClass) {
+		heading.addClass("auto-journal-heading");
+	}
 	return heading;
 }
 
-function createLink(el: DocumentFragment, text: string, href: string) {
+function createLink(
+	el: HTMLElement | DocumentFragment,
+	text: string,
+	href: string
+) {
 	const link = el.createEl("a", { text, href });
 	link.addClass("auto-journal-link");
 	return link;
