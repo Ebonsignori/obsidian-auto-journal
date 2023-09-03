@@ -1,8 +1,8 @@
 import { App, Notice, TFile } from "obsidian";
 import moment, { Moment } from "moment-timezone";
-import path from "path-browserify";
 import { AutoJournalSettings, BackFillOptions } from "./settings/settings";
-import { APP_NAME, errorNotice } from "./utils";
+import { APP_NAME, errorNotice } from "./utils/highlight-search";
+import { join, dirname, basename } from "./utils/path";
 
 /**
  * The core logic of the plugin
@@ -47,7 +47,13 @@ export default class Core {
 					`${APP_NAME}: Daily notes template file not found in ${this.settings.dailyNotesTemplateFile} ${APP_NAME}. Please update template file in the settings.`
 				);
 			}
-			templateContents = await this.app.vault.read(templateFile as TFile);
+			if (templateFile instanceof TFile) {
+				templateContents = await this.app.vault.read(templateFile);
+			} else {
+				new Notice(
+					`${APP_NAME}: Daily notes template file ${this.settings.dailyNotesTemplateFile} is a directory, not a file. Please update template file in the settings.`
+				);
+			}
 		}
 
 		const year = this.newDate().format(this.settings.yearFormat);
@@ -77,11 +83,10 @@ export default class Core {
 
 			const dayOfMonthFilePath =
 				dateOfMonth.format(this.dailyFileFormat) + ".md";
-			const monthsFolderPath = path.dirname(dayOfMonthFilePath);
-
+			const monthsFolderPath = dirname(dayOfMonthFilePath);
 			// Get all the files in the month folder
 			const filesInFolder = this.app.vault.getFiles().filter((file) => {
-				let folderPath = path.join(
+				let folderPath = join(
 					this.settings.rootFolder,
 					monthsFolderPath
 				);
@@ -131,7 +136,10 @@ export default class Core {
 				// When the note is for the current day, and the "use today for latest note" setting is enabled
 				// Set the date to today, a minute in the future to support notifications via Reminder plugin
 				let createFileDate = dayDate;
-				if (this.settings.useTodayForLatestNote && this.newDate().date() === dayDate.date()) {
+				if (
+					this.settings.useTodayForLatestNote &&
+					this.newDate().date() === dayDate.date()
+				) {
 					createFileDate = this.newDate().add(1, "minute");
 				}
 
@@ -167,11 +175,11 @@ export default class Core {
 
 		const dayOfMonthFilePath =
 			this.newDate().format(this.monthlyFileFormat) + ".md";
-		const monthlyNotesFolderPath = path.dirname(dayOfMonthFilePath);
+		const monthlyNotesFolderPath = dirname(dayOfMonthFilePath);
 
 		// Get all the files in the month folder
 		const filesInFolder = this.app.vault.getFiles().filter((file) => {
-			let folderPath = path.join(
+			let folderPath = join(
 				this.settings.rootFolder,
 				monthlyNotesFolderPath
 			);
@@ -234,7 +242,10 @@ export default class Core {
 			// When the note is for the current month, and the "use today for latest note" setting is enabled
 			// Set the date to today, a minute in the future to support notifications via Reminder plugin
 			let createFileDate = monthDate;
-			if (this.settings.useTodayForLatestNote && this.newDate().month() === monthDate.month()) {
+			if (
+				this.settings.useTodayForLatestNote &&
+				this.newDate().month() === monthDate.month()
+			) {
 				createFileDate = this.newDate().add(1, "minute");
 			}
 
@@ -260,8 +271,8 @@ export default class Core {
 		if (!newFilePath.endsWith(".md")) {
 			newFilePath += ".md";
 		}
-		newFilePath = path.join(this.settings.rootFolder, newFilePath);
-		let folderPath = path.dirname(newFilePath);
+		newFilePath = join(this.settings.rootFolder, newFilePath);
+		let folderPath = dirname(newFilePath);
 
 		if (folderPath.startsWith("/")) {
 			folderPath = folderPath.slice(1);
@@ -270,8 +281,8 @@ export default class Core {
 		// Check if the folder exists, if not, create it
 		if (!this.app.vault.getAbstractFileByPath(folderPath)) {
 			let prevPath = "";
-			folderPath.split(path.sep).forEach((folderName) => {
-				const cascadePath = path.join(prevPath, folderName);
+			folderPath.split("/").forEach((folderName) => {
+				const cascadePath = join(prevPath, folderName);
 				if (!this.app.vault.getAbstractFileByPath(cascadePath)) {
 					this.app.vault.createFolder(cascadePath);
 				}
@@ -280,7 +291,7 @@ export default class Core {
 		}
 
 		// Check if the file exists for day, if not, create it
-		const dayPart = path.basename(newFilePath).split("-")[0].trim();
+		const dayPart = basename(newFilePath).split("-")[0].trim();
 		let existingFile = undefined;
 		for (const file of filesInFolder) {
 			const existingDayPart = file.basename.split("-")[0].trim();

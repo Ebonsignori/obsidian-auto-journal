@@ -2,7 +2,7 @@
 import { App, ISuggestOwner, Scope, TAbstractFile, TFolder } from "obsidian";
 import { createPopper, Instance as PopperInstance } from "@popperjs/core";
 import fuzzysort from "fuzzysort";
-import { highlightSearch } from "src/utils";
+import { highlightSearch } from "src/utils/highlight-search";
 
 export const wrapAround = (value: number, size: number): number => {
 	return ((value % size) + size) % size;
