@@ -322,7 +322,7 @@ export class SettingsTab extends PluginSettingTab {
 				.setName(`Template date token`)
 				.setDesc(templateDateTokenDesc)
 				.addText((text) => {
-					text.setPlaceholder("<$date-from-auto-journal$>")
+					text.setPlaceholder(DEFAULT_SETTINGS.templateDateToken)
 						.setValue(this.plugin.settings["templateDateToken"])
 						.onChange(async (value: string) => {
 							this.plugin.settings["templateDateToken"] = value;
