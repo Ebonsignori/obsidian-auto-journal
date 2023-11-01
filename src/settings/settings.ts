@@ -63,7 +63,7 @@ export const DEFAULT_SETTINGS: AutoJournalSettings = {
 	monthlyNotesBackfill: BackFillOptions.NONE,
 
 	shouldTemplateDate: true,
-	templateDateToken: "<$date-from-auto-journal$>",
+	templateDateToken: "{{auto-journal-date}}",
 	templateDateFormat: "YYYY-MM-DD",
 	useTodayForLatestNote: true,
 };
@@ -133,6 +133,15 @@ export class SettingsTab extends PluginSettingTab {
 					);
 					return updateSetting("monthlyNotesEnabled", false);
 				}
+			}
+		}
+
+		if (settings.shouldTemplateDate) {
+			if (!settings.templateDateToken) {
+				return updateSetting(
+					"templateDateToken",
+					DEFAULT_SETTINGS.templateDateToken
+				);
 			}
 		}
 	}
@@ -283,7 +292,11 @@ export class SettingsTab extends PluginSettingTab {
 		// - - - Begin Option: shouldTemplateDate
 		const shouldTemplateDateDesc = document.createDocumentFragment();
 		shouldTemplateDateDesc.append(
-			`Toggle on/off to replace a token from template file in new note with date the file represents.`
+			`Toggle on to replace a token from template file in new note with date the file was supposed to be created on.`,
+			shouldTemplateDateDesc.createEl("br"),
+			"Template tags: {{title}}, {{date}}, and {{time}} from the core plugin will use the date that the file was created on.",
+			shouldTemplateDateDesc.createEl("br"),
+			`${this.plugin.settings["templateDateToken"]} will be replaced with the date the file represents.`
 		);
 		new Setting(this.containerEl)
 			.setName(`Should replace token?`)
@@ -316,6 +329,7 @@ export class SettingsTab extends PluginSettingTab {
 							await this.plugin.saveSettings();
 						});
 					text.inputEl.onblur = () => {
+						this.validate();
 						this.display();
 					};
 				});

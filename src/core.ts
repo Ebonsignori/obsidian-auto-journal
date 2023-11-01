@@ -2,7 +2,8 @@ import { App, Notice, TFile } from "obsidian";
 import moment, { Moment } from "moment-timezone";
 import { AutoJournalSettings, BackFillOptions } from "./settings/settings";
 import { APP_NAME, errorNotice } from "./utils/highlight-search";
-import { join, dirname, basename } from "./utils/path";
+import { join, dirname, basename, fileNameNoExtension } from "./utils/path";
+import { replaceNewFileVars } from "./utils/replace-new-file-vars";
 
 /**
  * The core logic of the plugin
@@ -96,7 +97,7 @@ export default class Core {
 				return file.path.startsWith(folderPath);
 			});
 
-			const daysInMonth = this.newDate().daysInMonth();
+			const daysInMonth = dateOfMonth.daysInMonth();
 			// Make sure there is an entry for each day of the month
 			for (let day = 1; day <= daysInMonth; day++) {
 				const dayDate = this.newDate(year, monthNumber + 1, day);
@@ -138,7 +139,8 @@ export default class Core {
 				let createFileDate = dayDate;
 				if (
 					this.settings.useTodayForLatestNote &&
-					this.newDate().date() === dayDate.date()
+					this.newDate().format("YYYY-MM-DD") ===
+						dayDate.format("YYYY-MM-DD")
 				) {
 					createFileDate = this.newDate().add(1, "minute");
 				}
@@ -244,7 +246,8 @@ export default class Core {
 			let createFileDate = monthDate;
 			if (
 				this.settings.useTodayForLatestNote &&
-				this.newDate().month() === monthDate.month()
+				this.newDate().month() === monthDate.month() &&
+				this.newDate().year() === monthDate.year()
 			) {
 				createFileDate = this.newDate().add(1, "minute");
 			}
@@ -305,6 +308,7 @@ export default class Core {
 			}
 		}
 
+		// Important that we run this before replaceNewFileVars
 		if (
 			this.settings.shouldTemplateDate &&
 			templateContents.includes(this.settings.templateDateToken)
@@ -314,6 +318,12 @@ export default class Core {
 				createdDate.format(`${this.settings.templateDateFormat}`)
 			);
 		}
+
+		templateContents = await replaceNewFileVars(
+			this.app,
+			templateContents,
+			fileNameNoExtension(newFilePath)
+		);
 
 		if (!existingFile) {
 			await this.app.vault.create(newFilePath, templateContents);

@@ -13,3 +13,8 @@ export function join(...paths: string[]): string {
 export function basename(path: string): string {
 	return path.split("/").pop() || "";
 }
+
+export function fileNameNoExtension(path: string): string {
+	if (!path) return path;
+	return path.split("/")?.pop()?.slice(0, -3) as string;
+}
