@@ -34,6 +34,14 @@ For Monthly Notes:
 
 -   `For year` backfill will a note each month before today month prefix, e.g. `January -` for each month of the year before this month
 
+## Templating
+
+You can include a configurable token (default `{{auto-journal-date}}`) in a template to be replaced by the date that the file would have been created in a backfill rather than the date it was actually created on.
+
+By default, all variables from the [core Templates](https://help.obsidian.md/Plugins/Templates) plugin are supported using the settings from the core Templates plugin for date formatting e.g. `{{title}}`, `{{date}}`, `{{time}}`
+
+However, `{{date}}` and `{{time}}` will use the day that you opened Obsidian and Auto Journal ran to create note files on, rather than the date that a backfilled note would have if it was created on the date it represents. 
+
 ## Commands
 
 Opening today's daily/monthly note or the next/previous from today or the next/previous from the current note can be done via the command prompt with the following `Auto Journal: ` commands.
@@ -86,12 +94,6 @@ You can add CSS to the following classes to change the styling and/or positions 
 -   `auto-journal-previous` for all the `previous` type buttons
 
 Or you can adjust the CSS of a specific button using the button's `id` which is the same as its type. For instance a `next-daily` button has the id that can be accessed in CSS via `#next-daily`
-
-### Templating the date in a backfill
-
-You can include a configurable token in a template to be replaced by the date that the file would have been created in a backfill.
-
-By default, the token `<$date-from-auto-journal$>` in a template file will be replaced by a date in format `YYYY-MM-DD`. If you add the date to the property/frontmatter of your template, e.g. `date: <$date-from-auto-journal$>` you can use that date in other plugins.
 
 ## Plugins that pair well for daily journaling
 
