@@ -40,11 +40,16 @@ You can include a configurable token (default `{{auto-journal-date}}`) in a temp
 
 By default, all variables from the [core Templates](https://help.obsidian.md/Plugins/Templates) plugin are supported using the settings from the core Templates plugin for date formatting e.g. `{{title}}`, `{{date}}`, `{{time}}`
 
-However, `{{date}}` and `{{time}}` will use the day that you opened Obsidian and Auto Journal ran to create note files on, rather than the date that a backfilled note would have if it was created on the date it represents. 
+However, `{{date}}` and `{{time}}` will use the day that you opened Obsidian and Auto Journal ran to create note files on, rather than the date that a backfilled note would have if it was created on the date the note represents. 
 
 ## Commands
 
-Opening today's daily/monthly note or the next/previous from today or the next/previous from the current note can be done via the command prompt with the following `Auto Journal: ` commands.
+Opening:
+- Today's daily/monthly note 
+- The next/previous from today (if running a command from a non-note file)
+- The next/previous from the current note (if running a command from a note file)
+
+can be done via the command prompt with the following `Auto Journal: ` commands:
 
 -   `Open today's daily note`
 -   `Open next daily note`
@@ -57,17 +62,17 @@ You can assign hotkeys to any of these commands in the native Obsidian `Settings
 
 ## Navigation buttons
 
-You can add buttons to navigate to today/next/previous daily/monthly notes via a `auto-journal-navigation` code block.
+You can add buttons to navigate to the next, previous or today's daily/monthly note via an `auto-journal-navigation` code block.
 
-Inside the codeblock include the `type` of the button and the button text you want it to display.
+Inside the codeblock include the `type` of the button followed by a colon (`:`) and the button text you want it to display, like `today-daily: Today's note`.
 
-To add previous and next buttons for daily notes, you can add the following code block:
+For previous and next buttons in your daily notes, you could add the following code block:
 
 ````
 ```auto-journal-navigation
 previous-daily: Previous Note
 next-daily: Next note
-\```
+```
 ````
 
 and they'd look something like this,
