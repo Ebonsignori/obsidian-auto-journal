@@ -19,6 +19,11 @@ export function getJournalLink(
 		}
 	}
 
+	// If current file doesn't provide a valid date, use today's date
+	if (!startDate.isValid()) {
+		startDate = moment();
+	}
+
 	let link;
 	let adjustedDate;
 	if (nextOrPrevious === "next") {
