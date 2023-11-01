@@ -17,6 +17,13 @@ export default class AutoJournal extends Plugin {
 
 		this.addSettingTab(new SettingsTab(this.app, this));
 
+		// Automatically run on startup if enabled
+		if (this.settings.automaticallyRun) {
+			this.app.workspace.onLayoutReady(() => {
+				this.run();
+			});
+		}
+
 		this.addCommand({
 			id: "manually-trigger",
 			name: "Manually trigger",
@@ -25,17 +32,24 @@ export default class AutoJournal extends Plugin {
 			},
 		});
 
+		const goToNote = (
+			type: "daily" | "monthly",
+			navigateTo: "previous" | "next" | "today"
+		) => {
+			const link = getJournalLink(
+				this.app,
+				this.settings,
+				type,
+				navigateTo
+			);
+			navigateToJournalLink(this.app, this.settings, link);
+		};
+
 		this.addCommand({
 			id: "todays-daily-note",
-			name: "Open todays daily note",
+			name: "Open today's daily note",
 			callback: () => {
-				const link = getJournalLink(
-					this.app,
-					this.settings,
-					"daily",
-					"today"
-				);
-				navigateToJournalLink(this.app, this.settings, link);
+				goToNote("daily", "today");
 			},
 		});
 
@@ -43,13 +57,7 @@ export default class AutoJournal extends Plugin {
 			id: "next-daily-note",
 			name: "Open next daily note",
 			callback: () => {
-				const link = getJournalLink(
-					this.app,
-					this.settings,
-					"daily",
-					"next"
-				);
-				navigateToJournalLink(this.app, this.settings, link);
+				goToNote("daily", "next");
 			},
 		});
 
@@ -57,13 +65,7 @@ export default class AutoJournal extends Plugin {
 			id: "previous-daily-note",
 			name: "Open previous daily note",
 			callback: () => {
-				const link = getJournalLink(
-					this.app,
-					this.settings,
-					"daily",
-					"previous"
-				);
-				navigateToJournalLink(this.app, this.settings, link);
+				goToNote("daily", "previous");
 			},
 		});
 
@@ -71,13 +73,7 @@ export default class AutoJournal extends Plugin {
 			id: "todays-monthly-note",
 			name: "Open todays monthly note",
 			callback: () => {
-				const link = getJournalLink(
-					this.app,
-					this.settings,
-					"monthly",
-					"today"
-				);
-				navigateToJournalLink(this.app, this.settings, link);
+				goToNote("monthly", "today");
 			},
 		});
 
@@ -85,13 +81,7 @@ export default class AutoJournal extends Plugin {
 			id: "next-monthly-note",
 			name: "Open next monthly note",
 			callback: () => {
-				const link = getJournalLink(
-					this.app,
-					this.settings,
-					"monthly",
-					"next"
-				);
-				navigateToJournalLink(this.app, this.settings, link);
+				goToNote("monthly", "next");
 			},
 		});
 
@@ -99,21 +89,101 @@ export default class AutoJournal extends Plugin {
 			id: "previous-monthly-note",
 			name: "Open previous monthly note",
 			callback: () => {
-				const link = getJournalLink(
-					this.app,
-					this.settings,
-					"monthly",
-					"previous"
-				);
-				navigateToJournalLink(this.app, this.settings, link);
+				goToNote("monthly", "previous");
 			},
 		});
 
-		if (this.settings.automaticallyRun) {
-			this.app.workspace.onLayoutReady(() => {
-				this.run();
+		const createNavigationButton = (
+			container: HTMLElement,
+			buttonType: string,
+			buttonText: string,
+			type: "daily" | "monthly",
+			navigateTo: "previous" | "next" | "today"
+		) => {
+			const button = container.createEl("button", {
+				text: buttonText,
+				cls: `auto-journal-navigation-button auto-journal-${type} auto-journal-${navigateTo}`,
 			});
-		}
+			button.setAttribute("id", buttonType);
+			button.onclick = () => {
+				goToNote(type, navigateTo);
+			};
+			container.appendChild(button);
+		};
+
+		this.registerMarkdownCodeBlockProcessor(
+			"auto-journal-navigation",
+			(source, el) => {
+				el.parentElement?.addClass("auto-journal-code-block-hidden");
+				const container = el.createEl("div", {
+					cls: "auto-journal-navigation-container",
+				});
+
+				const lines = source.split("\n");
+				for (const line of lines) {
+					const keyValues = line.split(":");
+					if (keyValues.length !== 2) {
+						continue;
+					}
+					const buttonType = keyValues[0].trim();
+					const buttonText = keyValues[1].trim();
+					if (buttonType === "today-daily") {
+						createNavigationButton(
+							container,
+							buttonType,
+							buttonText,
+							"daily",
+							"today"
+						);
+					}
+					if (buttonType === "next-daily") {
+						createNavigationButton(
+							container,
+							buttonType,
+							buttonText,
+							"daily",
+							"next"
+						);
+					}
+					if (buttonType === "previous-daily") {
+						createNavigationButton(
+							container,
+							buttonType,
+							buttonText,
+							"daily",
+							"previous"
+						);
+					}
+					if (buttonType === "today-monthly") {
+						createNavigationButton(
+							container,
+							buttonType,
+							buttonText,
+							"monthly",
+							"today"
+						);
+					}
+					if (buttonType === "next-monthly") {
+						createNavigationButton(
+							container,
+							buttonType,
+							buttonText,
+							"monthly",
+							"next"
+						);
+					}
+					if (buttonType === "previous-monthly") {
+						createNavigationButton(
+							container,
+							buttonType,
+							buttonText,
+							"monthly",
+							"previous"
+						);
+					}
+				}
+			}
+		);
 	}
 
 	async run() {

@@ -34,6 +34,59 @@ For Monthly Notes:
 
 -   `For year` backfill will a note each month before today month prefix, e.g. `January -` for each month of the year before this month
 
+## Commands
+
+Opening today's daily/monthly note or the next/previous from today or the next/previous from the current note can be done via the command prompt with the following `Auto Journal: ` commands.
+
+-   `Open today's daily note`
+-   `Open next daily note`
+-   `Open previous daily note`
+-   `Open today's monthly note`
+-   `Open next monthly note`
+-   `Open previous monthly note`
+
+You can assign hotkeys to any of these commands in the native Obsidian `Settings` -> `Hotkeys` tab.
+
+## Navigation buttons
+
+You can add buttons to navigate to today/next/previous daily/monthly notes via a `auto-journal-navigation` code block.
+
+Inside the codeblock include the `type` of the button and the button text you want it to display.
+
+To add previous and next buttons for daily notes, you can add the following code block:
+
+````
+```auto-journal-navigation
+previous-daily: Previous Note
+next-daily: Next note
+\```
+````
+
+and they'd look something like this,
+
+![](./docs/assets/prev-next-buttons.png)
+
+The following button `type`s are supported:
+
+-   `today-daily`
+-   `previous-daily`
+-   `next-daily`
+-   `today-monthly`
+-   `previous-monthly`
+-   `next-monthly`
+
+You can add CSS to the following classes to change the styling and/or positions of the buttons,
+
+-   `auto-journal-navigation-container` for the containing `<div>`
+-   `auto-journal-navigation-button` for all the `<button>`s
+-   `auto-journal-daily` for all the `daily` type buttons
+-   `auto-journal-monthly` for all the `monthly` type buttons
+-   `auto-journal-today` for all the `today` type buttons
+-   `auto-journal-next` for all the `next` type buttons
+-   `auto-journal-previous` for all the `previous` type buttons
+
+Or you can adjust the CSS of a specific button using the button's `id` which is the same as its type. For instance a `next-daily` button has the id that can be accessed in CSS via `#next-daily`
+
 ### Templating the date in a backfill
 
 You can include a configurable token in a template to be replaced by the date that the file would have been created in a backfill.
@@ -41,7 +94,6 @@ You can include a configurable token in a template to be replaced by the date th
 By default, the token `<$date-from-auto-journal$>` in a template file will be replaced by a date in format `YYYY-MM-DD`. If you add the date to the property/frontmatter of your template, e.g. `date: <$date-from-auto-journal$>` you can use that date in other plugins.
 
 ## Plugins that pair well for daily journaling
-
 
 -   [Custom File Explorer sorting](https://github.com/SebastianMC/obsidian-custom-sort) Since the default names of each journal are the full names of the months e.g. `January` the following `sortspec` file placed in the root folder of your journal will organize them in the correct order on your filesystem.
 
@@ -166,7 +218,7 @@ The preferred method is adding this through the [built-in community plugin brows
 
 Please [open an issue](https://github.com/Ebonsignori/obsidian-auto-journal/issues/new) with any suggestions or bug reports.
 
-See [contributing docs](docs/contributing.md) if you'd like to open a PR. 
+See [contributing docs](docs/contributing.md) if you'd like to open a PR.
 
 ## Acknowledgements
 
@@ -174,4 +226,4 @@ See [contributing docs](docs/contributing.md) if you'd like to open a PR.
 
 The implementation borrows from:
 
-- [suggest.ts](./src/utils/suggest.ts) and the [file-suggest.ts](./src/settings/file-suggest.ts) and [folder-suggest.ts](./src/settings/folder-suggest.ts) that implement it are copyrighted works of [Liam Cain](https://github.com/liamcain), [obsidian-periodic-notes](https://github.com/liamcain/obsidian-periodic-notes).
+-   [suggest.ts](./src/utils/suggest.ts) and the [file-suggest.ts](./src/settings/file-suggest.ts) and [folder-suggest.ts](./src/settings/folder-suggest.ts) that implement it are copyrighted works of [Liam Cain](https://github.com/liamcain), [obsidian-periodic-notes](https://github.com/liamcain/obsidian-periodic-notes).

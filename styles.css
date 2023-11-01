@@ -1,6 +1,8 @@
 /* Auto Journal styles */
+
+/* Settings */
 .auto-journal-heading {
-  margin: 0;
+	margin: 0;
 	color: var(--text-normal);
 }
 
@@ -8,6 +10,22 @@
 	font-style: italic;
 }
 
-.auto-journal-notes-body {
-	margin: 0;
+/* Navigation buttons */
+.auto-journal-code-block-hidden:hover {
+	box-shadow: none !important;
+	border-radius: 0 !important;
+}
+
+.auto-journal-code-block-hidden > .edit-block-button {
+	opacity: 0 !important;
+}
+
+.auto-journal-navigation-container {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+
+.auto-journal-navigation-button:hover {
+	cursor: pointer !important;
 }
