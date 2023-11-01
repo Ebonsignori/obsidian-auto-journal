@@ -38,7 +38,7 @@ For Monthly Notes:
 
 You can include a configurable token in a template to be replaced by the date that the file would have been created in a backfill.
 
-By default, the token `<$date-from-auto-journal$>` will be replaced by a date in format `YYYY-MM-DD`. If you add the date to your frontmatter, e.g. `date: <$date-from-auto-journal$>` you can use that date in other plugins.
+By default, the token `<$date-from-auto-journal$>` in a template file will be replaced by a date in format `YYYY-MM-DD`. If you add the date to the property/frontmatter of your template, e.g. `date: <$date-from-auto-journal$>` you can use that date in other plugins.
 
 ## Plugins that pair well for daily journaling
 
