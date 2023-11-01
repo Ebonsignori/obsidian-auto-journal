@@ -19,7 +19,7 @@ export default class AutoJournal extends Plugin {
 
 		this.addCommand({
 			id: "manually-trigger",
-			name: "Manually Trigger",
+			name: "Manually trigger",
 			callback: () => {
 				this.run();
 			},
@@ -109,11 +109,11 @@ export default class AutoJournal extends Plugin {
 			},
 		});
 
-		this.app.workspace.onLayoutReady(() => {
-			if (this.settings.automaticallyRun) {
+		if (this.settings.automaticallyRun) {
+			this.app.workspace.onLayoutReady(() => {
 				this.run();
-			}
-		});
+			});
+		}
 	}
 
 	async run() {
