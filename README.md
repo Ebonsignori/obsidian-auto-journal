@@ -174,7 +174,7 @@ Or you can adjust the CSS of a specific button using the button's `id` which is 
 
         ```
         ---
-        date: <$date-from-auto-journal$>
+        date: {{auto-journal-date}}
         tag: check-in
         ---
         # **<% moment(tp.frontmatter.date).format("MMMM, YYYY") %>  Check In** 📆
