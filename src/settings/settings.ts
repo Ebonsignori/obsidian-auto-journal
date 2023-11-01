@@ -438,10 +438,28 @@ export class SettingsTab extends PluginSettingTab {
 		new Setting(this.containerEl).setName(`${type} notes`).setHeading();
 
 		// - - - Begin Option: notesEnabled
+		let pathString = "Notes will be saved to: ";
+		if (type === "Daily") {
+			pathString =
+				pathString +
+				`${this.plugin.settings.rootFolder}/${this.plugin.settings.yearFormat}/${this.plugin.settings.monthFormat}/${this.plugin.settings.dayFormat} -`;
+		} else if (type === "Monthly") {
+			pathString =
+				pathString +
+				`${this.plugin.settings.rootFolder}/${this.plugin.settings.yearFormat}/[${this.plugin.settings.monthlyNotesFolderName}]/${this.plugin.settings.monthFormat} -`;
+		}
+		const derivedFilePath = document.createDocumentFragment();
+		derivedFilePath.append(pathString);
 		const createNotesDesc = document.createDocumentFragment();
 		createNotesDesc.append(
 			`Toggle on/off to trigger ${lowerType} note functionality.`
 		);
+		if (this.plugin.settings[`${lowerType}NotesEnabled`]) {
+			createNotesDesc.append(
+				createNotesDesc.createEl("br"),
+				derivedFilePath
+			);
+		}
 		new Setting(this.containerEl)
 			.setName(`Create ${lowerType} notes?`)
 			.setDesc(createNotesDesc)
