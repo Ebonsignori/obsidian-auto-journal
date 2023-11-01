@@ -287,11 +287,11 @@ export default class Core {
 					try {
 						await this.app.vault.createFolder(cascadePath);
 					} catch (error) {
-						console.log("Error creating folder", error);
+						errorNotice("Error creating folder");
 					}
 				}
 				prevPath = cascadePath;
-			};
+			}
 		}
 
 		// Check if the file exists for day, if not, create it

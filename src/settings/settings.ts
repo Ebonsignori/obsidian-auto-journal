@@ -13,6 +13,8 @@ export enum BackFillOptions {
 export interface AutoJournalSettings {
 	automaticallyRun: boolean;
 
+	openNoteCommandInNewTab: boolean;
+
 	rootFolder: string;
 	timezone: string;
 	yearFormat: string;
@@ -39,6 +41,8 @@ export interface AutoJournalSettings {
 
 export const DEFAULT_SETTINGS: AutoJournalSettings = {
 	automaticallyRun: true,
+
+	openNoteCommandInNewTab: false,
 
 	rootFolder: "Journal",
 	timezone: "",
@@ -346,6 +350,23 @@ export class SettingsTab extends PluginSettingTab {
 		}
 
 		new Setting(this.containerEl).setName("Advanced config").setHeading();
+
+		// Begin Option: Open note command in new tab
+		const openNoteCommandInNewTabDesc = document.createDocumentFragment();
+		openNoteCommandInNewTabDesc.append(
+			`Enable for shortcuts to open notes in new a new tab.`
+		);
+		new Setting(this.containerEl)
+			.setName(`Open note command opens note in new tab?`)
+			.setDesc(openNoteCommandInNewTabDesc)
+			.addToggle((toggle) => {
+				toggle
+					.setValue(this.plugin.settings["openNoteCommandInNewTab"])
+					.onChange(async (value: boolean) => {
+						this.plugin.settings["openNoteCommandInNewTab"] = value;
+						await this.plugin.saveSettings();
+					});
+			});
 
 		// - - - Begin Option: timezone
 		const timezoneDesc = document.createDocumentFragment();

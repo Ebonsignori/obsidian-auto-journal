@@ -166,29 +166,7 @@ The preferred method is adding this through the [built-in community plugin brows
 
 Please [open an issue](https://github.com/Ebonsignori/obsidian-auto-journal/issues/new) with any suggestions or bug reports.
 
-Or feel free to fork and open a PR :heart:
-
-### Local development
-
-1. Move this to your `.obsidian/plugins` directory in a vault you don't mind messing with.
-1. `npm i`
-1. `npm run dev`
-1. Add [hot-reload](https://github.com/pjeby/hot-reload) to the same `.obsidian/plugins` directory and enable it in Obsidian to ease development.
-
-### Releasing
-
-Once changes are in `main`, add a tag reflecting the new semver (without the `v` prefix) and push the tag to the repo.
-
-For example:
-
-```
-git tag 1.0.0
-git push origin 1.0.0
-```
-
-[Release.yml](./.github/workflows/release.yml) will handle bumping the version and publishing a release to the [Releases Page](https://github.com/Ebonsignori/obsidian-auto-journal/releases).
-
-Remember to update the [newest release](https://github.com/Ebonsignori/obsidian-auto-journal/releases) notes with any relevant changes.
+See [contributing docs](docs/contributing.md) if you'd like to open a PR. 
 
 ## Acknowledgements
 
