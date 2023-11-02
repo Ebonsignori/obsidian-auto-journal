@@ -10,7 +10,7 @@ export function getJournalLink(
 	nextOrPrevious: "next" | "previous" | "today"
 ) {
 	const currentFile = app.workspace.getActiveFile();
-	let startDate = moment();
+	let startDate: moment.Moment | null = moment();
 	if (currentFile?.path) {
 		if (dailyOrMonthly === "daily") {
 			startDate = getDateFromDailyNotePath(settings, currentFile?.path);
@@ -20,7 +20,7 @@ export function getJournalLink(
 	}
 
 	// If current file doesn't provide a valid date, use today's date
-	if (!startDate.isValid()) {
+	if (!startDate || !startDate.isValid()) {
 		startDate = moment();
 	}
 
@@ -62,11 +62,14 @@ export function navigateToJournalLink(
 export function getDateFromDailyNotePath(
 	settings: AutoJournalSettings,
 	filePath: string
-): moment.Moment {
+): moment.Moment | null {
 	const splitPath = filePath?.split("/");
 	const day = splitPath?.[splitPath.length - 1].split("-")?.[0]?.trim();
 	const month = splitPath?.[splitPath.length - 2];
 	const year = splitPath?.[splitPath.length - 3];
+	if (!month || !year || !day) {
+		return null;
+	}
 	return moment(
 		`${year}-${month}-${day}`,
 		`${settings.yearFormat}-${settings.monthFormat}-${settings.dayFormat}`
@@ -76,10 +79,13 @@ export function getDateFromDailyNotePath(
 export function getDateFromMonthlyNotePath(
 	settings: AutoJournalSettings,
 	filePath: string
-): moment.Moment {
+): moment.Moment | null {
 	const splitPath = filePath?.split("/");
 	const month = splitPath?.[splitPath.length - 1].split("-")?.[0]?.trim();
 	const year = splitPath?.[splitPath.length - 3];
+	if (!month || !year) {
+		return null;
+	}
 	return moment(
 		`${year}-${month}-01`,
 		`${settings.yearFormat}-${settings.monthFormat}-DD`
