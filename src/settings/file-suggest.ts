@@ -1,6 +1,6 @@
 import { TFile } from "obsidian";
 import fuzzysort from "fuzzysort";
-import { highlightSearch } from "src/utils/highlight-search";
+import { highlightSearch } from "src/utils/misc";
 import { TextInputSuggest } from "src/utils/suggest";
 
 export class FileSuggest extends TextInputSuggest<Fuzzysort.KeyResult<TFile>> {

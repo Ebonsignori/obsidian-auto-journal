@@ -2,8 +2,9 @@ import moment from "moment";
 import { AutoJournalSettings } from "./settings/settings";
 import { App, Notice } from "obsidian";
 import { addMonthToDate, subtractMonthFromDate } from "./utils/date";
+import Core from "./core";
 
-export function getJournalLink(
+export async function getJournalLink(
 	app: App,
 	settings: AutoJournalSettings,
 	dailyOrMonthly: "daily" | "monthly",
@@ -41,9 +42,9 @@ export function getJournalLink(
 	}
 
 	if (dailyOrMonthly === "daily") {
-		link = getDailyJournalLinkForDay(app, settings, adjustedDate);
+		link = await getDailyJournalLinkForDay(app, settings, adjustedDate);
 	} else if (dailyOrMonthly === "monthly") {
-		link = getMonthlyJournalLinkForDay(app, settings, adjustedDate);
+		link = await getMonthlyJournalLinkForDay(app, settings, adjustedDate);
 	}
 
 	return link;
@@ -92,11 +93,11 @@ export function getDateFromMonthlyNotePath(
 	);
 }
 
-export function getDailyJournalLinkForDay(
+export async function getDailyJournalLinkForDay(
 	app: App,
 	settings: AutoJournalSettings,
 	journalDate = moment()
-): string {
+): Promise<string> {
 	const noteFolder = `${settings.rootFolder}/${journalDate.format(
 		settings.yearFormat
 	)}/${journalDate.format(settings.monthFormat)}`;
@@ -106,7 +107,7 @@ export function getDailyJournalLinkForDay(
 		return file?.parent?.path === noteFolder;
 	});
 
-	let link;
+	let link = "";
 	for (const file of dayFiles) {
 		if (file.name.split("-")?.[0]?.trim() === noteDay) {
 			link = file.path;
@@ -115,20 +116,28 @@ export function getDailyJournalLinkForDay(
 	}
 
 	if (!link) {
-		new Notice(
-			`Unable to find journal file for day ${noteDay} in ${noteFolder}. Is it created?`
-		);
-		return "";
+		const core = new Core(settings, app);
+		const templateContents = await core.getNoteTemplateContents("daily");
+		const newFilePath = `${noteFolder}/${noteDay} -.md`;
+		if (templateContents !== null) {
+			new Notice(`Created new daily note at ${newFilePath}`);
+			return core.createNewFile(
+				journalDate,
+				newFilePath,
+				templateContents,
+				[]
+			);
+		}
 	}
 
 	return link;
 }
 
-export function getMonthlyJournalLinkForDay(
+export async function getMonthlyJournalLinkForDay(
 	app: App,
 	settings: AutoJournalSettings,
 	journalDate = moment()
-): string {
+): Promise<string> {
 	const noteFolder = `${settings.rootFolder}/${journalDate.format(
 		settings.yearFormat
 	)}/${settings.monthlyNotesFolderName}`;
@@ -138,7 +147,7 @@ export function getMonthlyJournalLinkForDay(
 		return file?.parent?.path === noteFolder;
 	});
 
-	let link;
+	let link = "";
 	for (const file of monthlyFiles) {
 		if (file.name.split("-")?.[0]?.trim() === noteMonth) {
 			link = file.path;
@@ -147,10 +156,18 @@ export function getMonthlyJournalLinkForDay(
 	}
 
 	if (!link) {
-		new Notice(
-			`Unable to find journal file for month ${noteMonth} in ${noteFolder}. Is it created?`
-		);
-		return "";
+		const core = new Core(settings, app);
+		const templateContents = await core.getNoteTemplateContents("monthly");
+		if (templateContents !== null) {
+			const newFilePath = `${noteFolder}/${noteMonth} -.md`;
+			new Notice(`Created new monthly note at ${newFilePath}`);
+			return core.createNewFile(
+				journalDate,
+				newFilePath,
+				templateContents,
+				[]
+			);
+		}
 	}
 
 	return link;

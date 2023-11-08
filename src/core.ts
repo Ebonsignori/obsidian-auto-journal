@@ -1,7 +1,7 @@
 import { App, Notice, TFile } from "obsidian";
 import moment, { Moment } from "moment-timezone";
 import { AutoJournalSettings, BackFillOptions } from "./settings/settings";
-import { APP_NAME, errorNotice } from "./utils/highlight-search";
+import { APP_NAME, errorNotice } from "./utils/misc";
 import { join, dirname, basename, fileNameNoExtension } from "./utils/path";
 import { replaceNewFileVars } from "./utils/replace-new-file-vars";
 
@@ -37,24 +37,40 @@ export default class Core {
 		}
 	}
 
-	async createDailyNote() {
+	async getNoteTemplateContents(
+		type: "daily" | "monthly"
+	): Promise<string | null> {
+		const templatePath =
+			type === "daily"
+				? this.settings.dailyNotesTemplateFile
+				: this.settings.monthlyNotesTemplateFile;
 		let templateContents = "";
-		if (this.settings.dailyNotesTemplateFile) {
+		if (templatePath) {
 			const templateFile = this.app.vault.getAbstractFileByPath(
-				`${this.settings.dailyNotesTemplateFile}.md`
+				`${templatePath}.md`
 			);
 			if (!templateFile) {
-				return new Notice(
-					`${APP_NAME}: Daily notes template file not found in ${this.settings.dailyNotesTemplateFile} ${APP_NAME}. Please update template file in the settings.`
+				new Notice(
+					`${APP_NAME}: ${type} notes template file not found in ${templatePath}. Please update template file in the settings.`
 				);
+				return null;
 			}
 			if (templateFile instanceof TFile) {
 				templateContents = await this.app.vault.read(templateFile);
 			} else {
 				new Notice(
-					`${APP_NAME}: Daily notes template file ${this.settings.dailyNotesTemplateFile} is a directory, not a file. Please update template file in the settings.`
+					`${APP_NAME}: ${type} notes template file ${templatePath} is a directory, not a file. Please update template file in the settings.`
 				);
+				return null;
 			}
+		}
+		return templateContents;
+	}
+
+	async createDailyNote() {
+		const templateContents = await this.getNoteTemplateContents("daily");
+		if (templateContents === null) {
+			return;
 		}
 
 		const year = this.newDate().format(this.settings.yearFormat);
@@ -160,17 +176,9 @@ export default class Core {
 	}
 
 	async createMonthlyNote() {
-		let templateContents = "";
-		if (this.settings.monthlyNotesTemplateFile) {
-			const templateFile = this.app.vault.getAbstractFileByPath(
-				`${this.settings.monthlyNotesTemplateFile}.md`
-			);
-			if (!templateFile) {
-				return new Notice(
-					`${APP_NAME}: Monthly notes template file not found in ${this.settings.monthlyNotesTemplateFile} ${APP_NAME}. Please update template file in the settings.`
-				);
-			}
-			templateContents = await this.app.vault.read(templateFile as TFile);
+		const templateContents = await this.getNoteTemplateContents("monthly");
+		if (templateContents === null) {
+			return;
 		}
 
 		const year = this.newDate().format(this.settings.yearFormat);
@@ -270,11 +278,13 @@ export default class Core {
 		newFilePath: string,
 		templateContents: string,
 		filesInFolder: TFile[]
-	) {
+	): Promise<string> {
 		if (!newFilePath.endsWith(".md")) {
 			newFilePath += ".md";
 		}
-		newFilePath = join(this.settings.rootFolder, newFilePath);
+		if (!newFilePath.startsWith(this.settings.rootFolder)) {
+			newFilePath = join(this.settings.rootFolder, newFilePath);
+		}
 		let folderPath = dirname(newFilePath);
 
 		if (folderPath.startsWith("/")) {
@@ -328,6 +338,8 @@ export default class Core {
 		if (!existingFile) {
 			await this.app.vault.create(newFilePath, templateContents);
 		}
+
+		return newFilePath;
 	}
 
 	/**

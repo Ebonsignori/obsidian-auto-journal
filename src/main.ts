@@ -32,11 +32,11 @@ export default class AutoJournal extends Plugin {
 			},
 		});
 
-		const goToNote = (
+		const goToNote = async (
 			type: "daily" | "monthly",
 			navigateTo: "previous" | "next" | "today"
 		) => {
-			const link = getJournalLink(
+			const link = await getJournalLink(
 				this.app,
 				this.settings,
 				type,
