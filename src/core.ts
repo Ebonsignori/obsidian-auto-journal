@@ -1,7 +1,7 @@
 import { App, Notice, TFile } from "obsidian";
 import moment, { Moment } from "moment-timezone";
 import { AutoJournalSettings, BackFillOptions } from "./settings/settings";
-import { APP_NAME, errorNotice } from "./utils/misc";
+import { APP_NAME, errorNotification } from "./utils/misc";
 import { join, dirname, basename, fileNameNoExtension } from "./utils/path";
 import { replaceNewFileVars } from "./utils/replace-new-file-vars";
 
@@ -26,13 +26,19 @@ export default class Core {
 
 		if (this.settings.dailyNotesEnabled) {
 			await this.createDailyNote().catch((error) => {
-				errorNotice(error.message);
+				errorNotification(
+					error.message,
+					this.settings.showDebugNotifications
+				);
 			});
 		}
 
 		if (this.settings.monthlyNotesEnabled) {
 			await this.createMonthlyNote().catch((error) => {
-				errorNotice(error.message);
+				errorNotification(
+					error.message,
+					this.settings.showDebugNotifications
+				);
 			});
 		}
 	}
@@ -169,7 +175,10 @@ export default class Core {
 					templateContents,
 					filesInFolder
 				).catch((error) => {
-					errorNotice(error.message);
+					errorNotification(
+						error.message,
+						this.settings.showDebugNotifications
+					);
 				});
 			}
 		}
@@ -268,7 +277,10 @@ export default class Core {
 				templateContents,
 				filesInFolder
 			).catch((error) => {
-				errorNotice(error.message);
+				errorNotification(
+					error.message,
+					this.settings.showDebugNotifications
+				);
 			});
 		}
 	}
@@ -300,7 +312,10 @@ export default class Core {
 					try {
 						await this.app.vault.createFolder(cascadePath);
 					} catch (error) {
-						errorNotice("Error creating folder");
+						errorNotification(
+							`Error creating folder, ${cascadePath} for ${newFilePath}`,
+							this.settings.showDebugNotifications
+						);
 					}
 				}
 				prevPath = cascadePath;

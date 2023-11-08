@@ -1,3 +1,5 @@
+import { Notice } from "obsidian";
+
 // Constants
 export const APP_NAME = "Auto Journal";
 
@@ -66,7 +68,22 @@ export function highlightSearch<T>(
  *
  * @param message - The message to display in the error notice
  */
-export function errorNotice(message: string): void {
-	console.log(`${APP_NAME} error: ` + message);
-	// new Notice(`${APP_NAME} error: ` + message, 5000);
+export function errorNotification(
+	message: string,
+	showDebugNotifications: boolean
+): void {
+	if (showDebugNotifications) {
+		new Notice(`${APP_NAME} [Error]: ` + message, 5000);
+	}
+	console.log(`${APP_NAME} [Error]: ` + message);
+}
+
+export function infoNotification(
+	message: string,
+	showDebugNotifications: boolean
+): void {
+	if (showDebugNotifications) {
+		new Notice(`${APP_NAME} [Info]: ` + message, 5000);
+	}
+	console.log(`${APP_NAME} [Info]: ` + message);
 }

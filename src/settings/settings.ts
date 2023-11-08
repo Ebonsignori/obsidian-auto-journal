@@ -37,6 +37,8 @@ export interface AutoJournalSettings {
 	templateDateToken: string;
 	templateDateFormat: string;
 	useTodayForLatestNote: boolean;
+
+	showDebugNotifications: boolean;
 }
 
 export const DEFAULT_SETTINGS: AutoJournalSettings = {
@@ -66,6 +68,8 @@ export const DEFAULT_SETTINGS: AutoJournalSettings = {
 	templateDateToken: "{{auto-journal-date}}",
 	templateDateFormat: "YYYY-MM-DD",
 	useTodayForLatestNote: true,
+
+	showDebugNotifications: false,
 };
 
 export class SettingsTab extends PluginSettingTab {
@@ -381,6 +385,7 @@ export class SettingsTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					});
 			});
+		// End Option: Open note command in new tab
 
 		// - - - Begin Option: timezone
 		const timezoneDesc = document.createDocumentFragment();
@@ -407,6 +412,24 @@ export class SettingsTab extends PluginSettingTab {
 		this.createDateFormatSetting("Year");
 		this.createDateFormatSetting("Month");
 		this.createDateFormatSetting("Day");
+
+		// Begin Option: Show debug notifications
+		const showDebugNotificationsDesc = document.createDocumentFragment();
+		showDebugNotificationsDesc.append(
+			`Enable to show debug notifications (defaults to showing in console)`
+		);
+		new Setting(this.containerEl)
+			.setName(`Show debug notifications?`)
+			.setDesc(showDebugNotificationsDesc)
+			.addToggle((toggle) => {
+				toggle
+					.setValue(this.plugin.settings["showDebugNotifications"])
+					.onChange(async (value: boolean) => {
+						this.plugin.settings["showDebugNotifications"] = value;
+						await this.plugin.saveSettings();
+					});
+			});
+		// End Option: Show debug notifications
 	}
 
 	createDateFormatSetting(type: "Year" | "Month" | "Day"): void {
