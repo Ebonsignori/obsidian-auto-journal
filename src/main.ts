@@ -6,6 +6,7 @@ import {
 } from "./settings/settings";
 import Core from "./core";
 import { getJournalLink, navigateToJournalLink } from "./note-links";
+import { runAfterSync } from "./utils/run-after-sync";
 
 export default class AutoJournal extends Plugin {
 	settings: AutoJournalSettings;
@@ -19,8 +20,10 @@ export default class AutoJournal extends Plugin {
 
 		// Automatically run on startup if enabled
 		if (this.settings.automaticallyRun) {
-			this.app.workspace.onLayoutReady(() => {
-				this.run();
+			runAfterSync.call(this, () => {
+				this.app.workspace.onLayoutReady(() => {
+					this.run();
+				});
 			});
 		}
 
