@@ -296,11 +296,11 @@ export class SettingsTab extends PluginSettingTab {
 		// - - - Begin Option: shouldTemplateDate
 		const shouldTemplateDateDesc = document.createDocumentFragment();
 		shouldTemplateDateDesc.append(
-			`Toggle on to replace a token from template file in new note with date the file was supposed to be created on.`,
+			`Toggle on to replace date tokens from template file in new note with date the file was supposed to be created on.`,
 			shouldTemplateDateDesc.createEl("br"),
 			"Template tags: {{title}}, {{date}}, and {{time}} from the core plugin will use the date that the file was created on.",
 			shouldTemplateDateDesc.createEl("br"),
-			`${this.plugin.settings["templateDateToken"]} will be replaced with the date the file represents.`
+			`${this.plugin.settings["templateDateToken"]} will be replaced with the date using the configured format below.`,
 		);
 		new Setting(this.containerEl)
 			.setName(`Should replace token?`)
@@ -320,7 +320,7 @@ export class SettingsTab extends PluginSettingTab {
 			// - - - Begin Option: templateDateToken
 			const templateDateTokenDesc = document.createDocumentFragment();
 			templateDateTokenDesc.append(
-				`Value of token to replace with date in template file.`
+				`Value of token to replace with date in template file. Uses the format specified below. For inline formats, use {{auto-journal-date:FORMAT}} instead.`
 			);
 			new Setting(this.containerEl)
 				.setName(`Template date token`)
@@ -474,6 +474,38 @@ export class SettingsTab extends PluginSettingTab {
 
 		new Setting(this.containerEl).setName(`${type} notes`).setHeading();
 
+		// - - - Begin Option: notesTemplateFile
+		const notesTemplateFileDesc = document.createDocumentFragment();
+		notesTemplateFileDesc.append(
+			`Path to the template file used to create ${lowerType} notes. `,
+			notesTemplateFileDesc.createEl("br"),
+			notesTemplateFileDesc.createEl("em", {
+				text: `Leave empty to create blank notes.`,
+			})
+		);
+		new Setting(this.containerEl)
+			.setName(`${type} notes template`)
+			.setDesc(notesTemplateFileDesc)
+			.addSearch((cb) => {
+				new FileSuggest(this.app, cb.inputEl);
+				cb.setPlaceholder("No template")
+					.setValue(
+						this.plugin.settings[
+							`${lowerType}NotesTemplateFile`
+						]
+					)
+					.onChange(async (newFile) => {
+						this.plugin.settings[
+							`${lowerType}NotesTemplateFile`
+						] = newFile.trim();
+						await this.plugin.saveSettings();
+					});
+				cb.inputEl.onblur = () => {
+					this.validate();
+				};
+			});
+		// - - - End Option: notesTemplateFile
+
 		// - - - Begin Option: notesEnabled
 		let pathString = "Notes will be saved to: ";
 		if (type === "Daily") {
@@ -529,38 +561,6 @@ export class SettingsTab extends PluginSettingTab {
 
 		// Only show the following options if the notes are enabled
 		if (this.plugin.settings[`${lowerType}NotesEnabled`]) {
-			// - - - Begin Option: notesTemplateFile
-			const notesTemplateFileDesc = document.createDocumentFragment();
-			notesTemplateFileDesc.append(
-				`Path to the template file used to create ${lowerType} notes. `,
-				notesTemplateFileDesc.createEl("br"),
-				notesTemplateFileDesc.createEl("em", {
-					text: `Leave empty to create blank notes.`,
-				})
-			);
-			new Setting(this.containerEl)
-				.setName(`${type} notes template`)
-				.setDesc(notesTemplateFileDesc)
-				.addSearch((cb) => {
-					new FileSuggest(this.app, cb.inputEl);
-					cb.setPlaceholder("No template")
-						.setValue(
-							this.plugin.settings[
-								`${lowerType}NotesTemplateFile`
-							]
-						)
-						.onChange(async (newFile) => {
-							this.plugin.settings[
-								`${lowerType}NotesTemplateFile`
-							] = newFile.trim();
-							await this.plugin.saveSettings();
-						});
-					cb.inputEl.onblur = () => {
-						this.validate();
-					};
-				});
-			// - - - End Option: notesTemplateFile
-
 			// - - - Begin Option: backfillNotes
 			const backfillNotesDesc = document.createDocumentFragment();
 			let timeSpanText = [] as Array<HTMLElement | string>;

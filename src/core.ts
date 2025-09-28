@@ -344,6 +344,17 @@ export default class Core {
 			);
 		}
 
+		// Handle flexible inline date format tokens: {{auto-journal-date:FORMAT}}
+		const flexibleTokenRegex = /\{\{auto-journal-date:([^}]+)\}\}/g;
+		templateContents = templateContents.replace(flexibleTokenRegex, (match, formatString) => {
+			try {
+				return createdDate.format(formatString.trim());
+			} catch (error) {
+				console.warn(`Auto Journal: Invalid date format "${formatString}" in token "${match}". Using default format.`);
+				return createdDate.format(this.settings.templateDateFormat);
+			}
+		});
+
 		templateContents = await replaceNewFileVars(
 			this.app,
 			templateContents,

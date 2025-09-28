@@ -38,6 +38,8 @@ For Monthly Notes:
 
 You can include a configurable token (default `{{auto-journal-date}}`) in a template to be replaced by the date that the file would have been created in a backfill rather than the date it was actually created on.
 
+You can also use flexible inline date format tokens like `{{auto-journal-date:YYYY-MM-DD}}` or `{{auto-journal-date:dddd, MMMM Do YYYY}}` to specify the date format directly within the token.
+
 By default, all variables from the [core Templates](https://help.obsidian.md/Plugins/Templates) plugin are supported using the settings from the core Templates plugin for date formatting e.g. `{{title}}`, `{{date}}`, `{{time}}`
 
 However, `{{date}}` and `{{time}}` will use the day that you opened Obsidian and Auto Journal ran to create note files on, rather than the date that a backfilled note would have if it was created on the date the note represents. 
